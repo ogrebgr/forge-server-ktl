@@ -18,6 +18,7 @@ class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : Forg
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    @Throws(ForgeConfigurationException::class)
     override fun load(): ForgeServerConfiguration {
         val path = Path.of(configDirPath.pathString, FORGE_CONF_FILENAME)
         if (!path.exists()) {

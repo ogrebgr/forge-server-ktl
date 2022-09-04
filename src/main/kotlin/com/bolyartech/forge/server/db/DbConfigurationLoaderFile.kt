@@ -5,6 +5,7 @@ import java.lang.Boolean
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
+import kotlin.Throws
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
 
@@ -23,6 +24,7 @@ class DbConfigurationLoaderFile(private val configDirPath: Path) : DbConfigurati
         private const val PROP_C3P0_TEST_CONNECTION_ON_CHECKOUT = "c3p0_test_connection_on_checkout"
     }
 
+    @Throws(ForgeConfigurationException::class)
     override fun load(): DbConfiguration {
         val path = Path.of(configDirPath.pathString, FILENAME)
         if (!path.exists()) {
