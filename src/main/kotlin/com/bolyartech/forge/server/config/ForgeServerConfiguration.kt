@@ -1,5 +1,7 @@
 package com.bolyartech.forge.server.config
 
+import java.io.File
+
 data class ForgeServerConfiguration(
     val serverLogName: String,
     val staticFilesDir: String,
@@ -18,6 +20,10 @@ data class ForgeServerConfiguration(
 
         if (staticFilesDir.isEmpty()) {
             throw IllegalArgumentException("staticFilesDir cannot be empty")
+        }
+
+        if (staticFilesDir.endsWith(File.separator)) {
+            throw IllegalArgumentException("staticFilesDir must NOT end with ${File.separator}")
         }
 
         if (maxSlashesInPathInfo < 0) {

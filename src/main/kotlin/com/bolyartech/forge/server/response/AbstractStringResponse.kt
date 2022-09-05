@@ -1,5 +1,6 @@
 package com.bolyartech.forge.server.response
 
+import com.bolyartech.forge.server.response.StringResponse.Companion.MIN_SIZE_FOR_GZIP
 import com.google.common.io.ByteStreams
 import com.google.common.io.CountingOutputStream
 import jakarta.servlet.http.Cookie
@@ -17,9 +18,6 @@ abstract class AbstractStringResponse : AbstractResponse, StringResponse {
     private lateinit var str: String
     private var enableGzipSupport: Boolean = true
 
-    companion object {
-        private const val MIN_SIZE_FOR_GZIP = 500
-    }
 
     /**
      * Creates new AbstractStringResponse

@@ -10,6 +10,6 @@ interface RouteHandler {
 
 }
 
-interface RouteHandlerPathInfo : RouteHandler {
+interface RouteHandlerFlexible : RouteHandler {
     fun willingToHandle(urlPath: String): Boolean
 }

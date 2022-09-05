@@ -6,56 +6,50 @@ import com.bolyartech.forge.server.response.HtmlResponse
 import com.bolyartech.forge.server.response.Response
 import com.bolyartech.forge.server.response.ResponseException
 import com.bolyartech.forge.server.route.RequestContext
+import jakarta.servlet.http.Cookie
 
 /**
- * Handler that produces HTML content, i.e. simple web page
+ * Handler which provides normal web page functionality.
+ * Use [.createHtmlResponse] to create HTML response.
  */
-abstract class WebPage : RouteHandler {
-    private val templateEngineFactory: TemplateEngineFactory
-    private val enableGzipSupport: Boolean
-
+abstract class WebPage(
+    private val templateEngineFactory: TemplateEngineFactory,
+    private val enableGzipSupport: Boolean = true
+) : RouteHandler {
     /**
-     * Creates new WebPage
-     *
-     * @param templateEngineFactory Template engine factory
-     */
-    constructor(templateEngineFactory: TemplateEngineFactory) {
-        this.templateEngineFactory = templateEngineFactory
-        enableGzipSupport = false
-    }
-
-    /**
-     * Creates new WebPage
-     *
-     * @param templateEngineFactory Template engine factory
-     * @param enableGzipSupport     if true Gzip compression will be used (if supported by the client)
-     */
-    constructor(templateEngineFactory: TemplateEngineFactory, enableGzipSupport: Boolean) {
-        this.templateEngineFactory = templateEngineFactory
-        this.enableGzipSupport = enableGzipSupport
-    }
-
-    /**
-     * Handles a HTTP request wrapped as [RequestContext] and produces HTML
+     * Handles a HTTP request wrapped as [RequestContext] and produces Response.
      *
      * @param ctx  Request context
      * @param tple Template engine
-     * @return HTML
+     * @return Response
      * @throws ResponseException if there is a problem handling the request
      */
     @Throws(ResponseException::class)
-    abstract fun produceHtml(ctx: RequestContext, tple: TemplateEngine): String
-    override fun handle(ctx: RequestContext): Response {
-        val content = produceHtml(ctx, templateEngineFactory.createNew())
+    abstract fun handlePage(ctx: RequestContext, tple: TemplateEngine): Response
+
+
+    final override fun handle(ctx: RequestContext): Response {
+        return handlePage(ctx, templateEngineFactory.createNew())
+    }
+
+    /**
+     * Convenience method for creating HtmlResponse
+     *
+     * @param content
+     * @return
+     */
+    final fun createHtmlResponse(content: String): HtmlResponse {
         return HtmlResponse(content, enableGzipSupport)
     }
 
     /**
-     * Returns the template engine factory
+     * Convenience method for creating HtmlResponse
      *
-     * @return template engine factory
+     * @param content
+     * @param cookiesToSet
+     * @return
      */
-    fun getTemplateEngineFactory(): TemplateEngineFactory {
-        return templateEngineFactory
+    fun createHtmlResponse(content: String, cookiesToSet: List<Cookie>): HtmlResponse {
+        return HtmlResponse(cookiesToSet, content, enableGzipSupport)
     }
 }

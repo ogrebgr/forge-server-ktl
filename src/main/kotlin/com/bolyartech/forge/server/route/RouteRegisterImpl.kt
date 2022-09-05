@@ -13,25 +13,54 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
     private val endpointsGetExact: MutableMap<String, RouteRegister.Registration> = ConcurrentHashMap()
     private val endpointsGetFlexible: MutableMap<String, RouteRegister.Registration> = ConcurrentHashMap()
 
-    private val endpointsPost: MutableMap<String, RouteRegister.Registration> = ConcurrentHashMap()
-    private val endpointsDelete: MutableMap<String, RouteRegister.Registration> = ConcurrentHashMap()
-    private val endpointsPut: MutableMap<String, RouteRegister.Registration> = ConcurrentHashMap()
+    private val endpointsPostExact: MutableMap<String, RouteRegister.Registration> = ConcurrentHashMap()
+    private val endpointsPostFlexible: MutableMap<String, RouteRegister.Registration> = ConcurrentHashMap()
+
+    private val endpointsDeleteExact: MutableMap<String, RouteRegister.Registration> = ConcurrentHashMap()
+    private val endpointsDeleteFlexible: MutableMap<String, RouteRegister.Registration> = ConcurrentHashMap()
+
+    private val endpointsPutExact: MutableMap<String, RouteRegister.Registration> = ConcurrentHashMap()
+    private val endpointsPutFlexible: MutableMap<String, RouteRegister.Registration> = ConcurrentHashMap()
 
 
     override fun register(moduleName: String, route: Route) {
         when (route.getHttpMethod()) {
             HttpMethod.GET -> {
                 when (route) {
-                    is RouteSimple -> registerActual(endpointsGetExact, moduleName, route)
+                    is RouteExact -> registerActual(endpointsGetExact, moduleName, route)
                     is RouteFlexible -> registerActual(endpointsGetFlexible, moduleName, route)
                     else -> {
                         throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
                     }
                 }
             }
-            HttpMethod.POST -> registerActual(endpointsPost, moduleName, route)
-            HttpMethod.PUT -> registerActual(endpointsPut, moduleName, route)
-            HttpMethod.DELETE -> registerActual(endpointsDelete, moduleName, route)
+            HttpMethod.POST -> {
+                when (route) {
+                    is RouteExact -> registerActual(endpointsPostExact, moduleName, route)
+                    is RouteFlexible -> registerActual(endpointsPostFlexible, moduleName, route)
+                    else -> {
+                        throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
+                    }
+                }
+            }
+            HttpMethod.PUT -> {
+                when (route) {
+                    is RouteExact -> registerActual(endpointsPutExact, moduleName, route)
+                    is RouteFlexible -> registerActual(endpointsPutFlexible, moduleName, route)
+                    else -> {
+                        throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
+                    }
+                }
+            }
+            HttpMethod.DELETE -> {
+                when (route) {
+                    is RouteExact -> registerActual(endpointsDeleteExact, moduleName, route)
+                    is RouteFlexible -> registerActual(endpointsDeleteFlexible, moduleName, route)
+                    else -> {
+                        throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
+                    }
+                }
+            }
             else -> throw IllegalArgumentException("Cannot register unsupported HttpMethod")
         }
     }
@@ -41,11 +70,18 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
         moduleName: String,
         route: Route
     ) {
-        if (!endpoints.containsKey(route.getPath())) {
-            endpoints[route.getPath()] = RouteRegister.Registration(moduleName, route)
-            logger.info("Registered route {} {}", route.getHttpMethod(), route.getPath())
+        val warn = endpoints.containsKey(route.getPath())
+        val wildcard = if (route is RouteFlexible) {
+            "*"
         } else {
-            throw IllegalStateException("Registered path already exist: " + route.getPath())
+            ""
+        }
+
+        endpoints[route.getPath()] = RouteRegister.Registration(moduleName, route)
+        if (!warn) {
+            logger.info("Registered route ${route.getHttpMethod()} ${route.getPath()}$wildcard (${route.getHandler()::class.simpleName})")
+        } else {
+            logger.info("Registered route ${route.getHttpMethod()} ${route.getPath()}$wildcard (${route.getHandler()::class.simpleName}) - method + path already registered. Care.")
         }
     }
 
@@ -53,16 +89,40 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
         return when (route.getHttpMethod()) {
             HttpMethod.GET -> {
                 when (route) {
-                    is RouteSimple -> endpointsGetExact.containsKey(route.getPath())
+                    is RouteExact -> endpointsGetExact.containsKey(route.getPath())
                     is RouteFlexible -> endpointsGetFlexible.containsKey(route.getPath())
                     else -> {
                         throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
                     }
                 }
             }
-            HttpMethod.POST -> endpointsPost.containsKey(route.getPath())
-            HttpMethod.PUT -> endpointsPut.containsKey(route.getPath())
-            HttpMethod.DELETE -> endpointsDelete.containsKey(route.getPath())
+            HttpMethod.POST -> {
+                when (route) {
+                    is RouteExact -> endpointsPostExact.containsKey(route.getPath())
+                    is RouteFlexible -> endpointsPostFlexible.containsKey(route.getPath())
+                    else -> {
+                        throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
+                    }
+                }
+            }
+            HttpMethod.PUT -> {
+                when (route) {
+                    is RouteExact -> endpointsPutExact.containsKey(route.getPath())
+                    is RouteFlexible -> endpointsPutFlexible.containsKey(route.getPath())
+                    else -> {
+                        throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
+                    }
+                }
+            }
+            HttpMethod.DELETE -> {
+                when (route) {
+                    is RouteExact -> endpointsDeleteExact.containsKey(route.getPath())
+                    is RouteFlexible -> endpointsDeleteFlexible.containsKey(route.getPath())
+                    else -> {
+                        throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
+                    }
+                }
+            }
             else -> {
                 throw IllegalArgumentException("route's method (route.getHttpMethod()) is unsupported")
             }
@@ -73,7 +133,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
         return when (route.getHttpMethod()) {
             HttpMethod.GET -> {
                 return when (route) {
-                    is RouteSimple -> endpointsGetExact[route.getPath()]
+                    is RouteExact -> endpointsGetExact[route.getPath()]
                     is RouteFlexible -> endpointsGetFlexible[route.getPath()]
                     else -> {
                         logger.warn("route is of unsupported class {${route.javaClass}}")
@@ -81,9 +141,36 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     }
                 }
             }
-            HttpMethod.POST -> endpointsPost[route.getPath()]
-            HttpMethod.PUT -> endpointsPut[route.getPath()]
-            HttpMethod.DELETE -> endpointsDelete[route.getPath()]
+            HttpMethod.POST -> {
+                return when (route) {
+                    is RouteExact -> endpointsPostExact[route.getPath()]
+                    is RouteFlexible -> endpointsPostFlexible[route.getPath()]
+                    else -> {
+                        logger.warn("route is of unsupported class {${route.javaClass}}")
+                        return null
+                    }
+                }
+            }
+            HttpMethod.PUT -> {
+                return when (route) {
+                    is RouteExact -> endpointsPutExact[route.getPath()]
+                    is RouteFlexible -> endpointsPutFlexible[route.getPath()]
+                    else -> {
+                        logger.warn("route is of unsupported class {${route.javaClass}}")
+                        return null
+                    }
+                }
+            }
+            HttpMethod.DELETE -> {
+                return when (route) {
+                    is RouteExact -> endpointsDeleteExact[route.getPath()]
+                    is RouteFlexible -> endpointsDeleteFlexible[route.getPath()]
+                    else -> {
+                        logger.warn("route is of unsupported class {${route.javaClass}}")
+                        return null
+                    }
+                }
+            }
             else -> {
                 logger.warn("route's method (route.getHttpMethod()) is unsupported")
                 return null
@@ -102,9 +189,27 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                 }
                 tmp
             }
-            HttpMethod.POST -> match(endpointsPost, pathNorm)
-            HttpMethod.PUT -> match(endpointsPut, pathNorm)
-            HttpMethod.DELETE -> match(endpointsDelete, pathNorm)
+            HttpMethod.POST -> {
+                var tmp = match(endpointsPostExact, pathNorm)
+                if (tmp == null) {
+                    tmp = match(endpointsPostFlexible, pathNorm)
+                }
+                tmp
+            }
+            HttpMethod.PUT -> {
+                var tmp = match(endpointsPutExact, pathNorm)
+                if (tmp == null) {
+                    tmp = match(endpointsPutFlexible, pathNorm)
+                }
+                tmp
+            }
+            HttpMethod.DELETE -> {
+                var tmp = match(endpointsDeleteExact, pathNorm)
+                if (tmp == null) {
+                    tmp = match(endpointsDeleteFlexible, pathNorm)
+                }
+                tmp
+            }
             else -> {
                 throw IllegalArgumentException("route's method (route.getHttpMethod()) is unsupported")
             }

@@ -14,19 +14,8 @@ class SiteModuleRegisterImpl @Inject constructor(private val routeRegister: Rout
     override fun registerModule(mod: SiteModule) {
         if (!isModuleRegistered(mod)) {
             modules.add(mod)
-            for (ep in mod.createRoutes()) {
-                if (!routeRegister.isRegistered(ep)) {
-                    routeRegister.register((mod.getSystemName() + " (" + mod.getVersionName()).toString() + ")", ep)
-                } else {
-                    val reg = routeRegister.getRegistration(ep)!!
-                    throw IllegalStateException(
-                        MessageFormat.format(
-                            "Path {0} already registered for module {1}",
-                            reg.route.getPath(),
-                            reg.moduleName
-                        )
-                    )
-                }
+            for (route in mod.createRoutes()) {
+                routeRegister.register((mod.getSystemName() + " (" + mod.getVersionName()).toString() + ")", route)
             }
         } else {
             throw IllegalStateException(MessageFormat.format("Module '{0}' already registered", mod.getSystemName()))

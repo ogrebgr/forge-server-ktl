@@ -2,7 +2,7 @@ package com.bolyartech.forge.server.route
 
 import com.bolyartech.forge.server.HttpMethod
 import com.bolyartech.forge.server.handler.RouteHandler
-import com.bolyartech.forge.server.handler.RouteHandlerPathInfo
+import com.bolyartech.forge.server.handler.RouteHandlerFlexible
 import com.bolyartech.forge.server.response.Response
 import com.bolyartech.forge.server.response.ResponseException
 import jakarta.servlet.http.HttpServletRequest
@@ -37,6 +37,8 @@ sealed interface Route {
     fun handle(httpReq: HttpServletRequest, httpResp: HttpServletResponse)
 
     fun isMatching(urlPath: String): Boolean
+
+    fun getHandler(): RouteHandler
 }
 
 abstract class AbstractRoute(private val httpMethod: HttpMethod, val routeHandler: RouteHandler) : Route {
@@ -115,9 +117,13 @@ abstract class AbstractRoute(private val httpMethod: HttpMethod, val routeHandle
             throw ResponseException(e)
         }
     }
+
+    override fun getHandler(): RouteHandler {
+        return routeHandler
+    }
 }
 
-class RouteSimple(httpMethod: HttpMethod, private val path: String, routeHandler: RouteHandler) :
+class RouteExact(httpMethod: HttpMethod, private val path: String, routeHandler: RouteHandler) :
     AbstractRoute(httpMethod, routeHandler) {
 
     override fun isMatching(urlPath: String): Boolean {
@@ -131,7 +137,7 @@ class RouteSimple(httpMethod: HttpMethod, private val path: String, routeHandler
 }
 
 
-class RouteFlexible(httpMethod: HttpMethod, private val pathPatternPrefix: String, routeHandler: RouteHandlerPathInfo) :
+class RouteFlexible(httpMethod: HttpMethod, private val pathPatternPrefix: String, routeHandler: RouteHandlerFlexible) :
     AbstractRoute(httpMethod, routeHandler) {
 
     override fun isMatching(urlPath: String): Boolean {
@@ -140,7 +146,7 @@ class RouteFlexible(httpMethod: HttpMethod, private val pathPatternPrefix: Strin
             return false
         }
 
-        return (routeHandler as RouteHandlerPathInfo).willingToHandle(urlPathNorm.substring(pathPatternPrefix.length))
+        return (routeHandler as RouteHandlerFlexible).willingToHandle(urlPathNorm.substring(pathPatternPrefix.length))
     }
 
     override fun getPath(): String {

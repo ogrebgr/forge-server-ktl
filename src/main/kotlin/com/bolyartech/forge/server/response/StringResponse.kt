@@ -10,4 +10,8 @@ interface StringResponse : Response {
      * @return string
      */
     fun getString(): String
+
+    companion object {
+        const val MIN_SIZE_FOR_GZIP = 500
+    }
 }
