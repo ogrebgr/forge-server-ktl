@@ -7,7 +7,6 @@ import com.bolyartech.forge.server.config.ForgeConfigurationException
 import com.bolyartech.forge.server.config.ForgeServerConfiguration
 import com.bolyartech.forge.server.config.ForgeServerConfigurationLoaderFile
 import com.bolyartech.forge.server.config.detectConfigurationDirectory
-import com.bolyartech.forge.server.db.C3p0DbPool
 import com.bolyartech.forge.server.db.DbConfiguration
 import com.bolyartech.forge.server.db.DbConfigurationLoaderFile
 import com.bolyartech.forge.server.db.DbPool
@@ -23,7 +22,7 @@ import kotlin.io.path.pathString
 
 interface ForgeServer {
     @Throws(ForgeConfigurationException::class)
-    fun start(fs: FileSystem, cliArgs: Array<String>)
+    fun start(configurationPack: ConfigurationPack)
     fun shutdown()
 
     fun onStart()
@@ -31,11 +30,54 @@ interface ForgeServer {
     fun onAfterWebServerStart(webServerStopper: WebServerStopper)
     fun onShutdown()
 
+    fun createDbDataSource(dbConfig: DbConfiguration): ComboPooledDataSource
     fun createWebServer(
-        fs: FileSystem,
-        forgeConfig: AbstractForgeServer.ConfigurationPack,
+        forgeConfig: ConfigurationPack,
         dbDataSource: ComboPooledDataSource
     ): WebServer
+
+    data class ConfigurationPack(
+        val configurationDirectory: Path,
+        val forgeServerConfiguration: ForgeServerConfiguration,
+        val dbConfiguration: DbConfiguration,
+    )
+
+    companion object {
+        fun createDataSourceHelper(dbConf: DbConfiguration): ComboPooledDataSource {
+            val p = Properties(System.getProperties())
+            p["com.mchange.v2.log.MLog"] = "com.mchange.v2.log.FallbackMLog"
+            p["com.mchange.v2.log.FallbackMLog.DEFAULT_CUTOFF_LEVEL"] = "OFF"
+            System.setProperties(p)
+
+            val comboPooledDataSource = ComboPooledDataSource()
+            comboPooledDataSource.jdbcUrl = dbConf.dbDsn
+            comboPooledDataSource.user = dbConf.dbUsername
+            comboPooledDataSource.password = dbConf.dbPassword
+            comboPooledDataSource.maxStatements = dbConf.cacheMaxStatements
+            comboPooledDataSource.initialPoolSize = dbConf.initialPoolSize
+            comboPooledDataSource.minPoolSize = dbConf.minPoolSize
+            comboPooledDataSource.maxPoolSize = dbConf.maxPoolSize
+            comboPooledDataSource.idleConnectionTestPeriod = dbConf.idleConnectionTestPeriod
+            comboPooledDataSource.isTestConnectionOnCheckin = dbConf.testConnectionOnCheckIn
+            comboPooledDataSource.isTestConnectionOnCheckout = dbConf.testConnectionOnCheckout
+            comboPooledDataSource.connectionCustomizerClassName = "com.bolyartech.forge.server.db.C3p0ConnectionCustomizer"
+
+            return comboPooledDataSource
+        }
+
+        fun loadConfigurationPack(fs: FileSystem, args: Array<String>): ConfigurationPack {
+            val filesystem = FileSystems.getDefault()
+            val configDir = detectConfigurationDirectory(filesystem, args)
+            if (configDir == null) {
+                throw ForgeConfigurationException("Cannot detect the configuration directory. Exiting.")
+            }
+
+            val forgeConf = ForgeServerConfigurationLoaderFile(configDir).load()
+            val dbConf = DbConfigurationLoaderFile(configDir).load()
+
+            return ConfigurationPack(configDir, forgeConf, dbConf)
+        }
+    }
 }
 
 
@@ -45,35 +87,30 @@ abstract class AbstractForgeServer() : ForgeServer {
     private var isStarted = false
     private var isShutdown = false
 
-    private var currentConfig: ConfigurationPack? = null
-    private var currentFs: FileSystem? = null
-    private var currentCliArgs: Array<String>? = null
+    private var currentConfig: ForgeServer.ConfigurationPack? = null
     private var currentDbPool: DbPool? = null
 
     private var webServer: WebServer? = null
 
     @Override
-    override fun start(fs: FileSystem, cliArgs: Array<String>) {
+    override fun start(configurationPack: ForgeServer.ConfigurationPack) {
         require(!isStarted)
         require(!isShutdown)
 
         onStart()
 
-        currentConfig = loadConfigurationPack(fs, cliArgs)
-        logger.info("+++ forge.conf loaded successfully")
+        currentConfig = configurationPack
         initLog(logger, currentConfig!!.configurationDirectory.pathString, currentConfig!!.forgeServerConfiguration.serverLogName)
 
-        val dbDataSource = createDataSource(currentConfig!!.dbConfiguration)
-        currentDbPool = C3p0DbPool(dbDataSource)
-        currentDbPool!!.connection.use {
-            // just testing if acquiring of a db connection is successfull
+        val dbDataSource = createDbDataSource(currentConfig!!.dbConfiguration)
+        dbDataSource.connection.use {
+            // just testing if acquiring of a db connection is successful
+            logger.info("Using DB ${currentConfig!!.dbConfiguration.dbDsn}")
         }
 
-        currentFs = fs
-        currentCliArgs = cliArgs
 
         onBeforeWebServerStart()
-        webServer = createWebServer(fs, currentConfig!!, dbDataSource)
+        webServer = createWebServer(currentConfig!!, dbDataSource)
         webServer!!.start()
         onAfterWebServerStart(webServer!!)
 
@@ -87,25 +124,6 @@ abstract class AbstractForgeServer() : ForgeServer {
 
         isStarted = false
         isShutdown = true
-    }
-
-    data class ConfigurationPack(
-        val configurationDirectory: Path,
-        val forgeServerConfiguration: ForgeServerConfiguration,
-        val dbConfiguration: DbConfiguration,
-    )
-
-    private fun loadConfigurationPack(fs: FileSystem, args: Array<String>): ConfigurationPack {
-        val filesystem = FileSystems.getDefault()
-        val configDir = detectConfigurationDirectory(filesystem, args)
-        if (configDir == null) {
-            throw ForgeConfigurationException("Cannot detect the configuration directory. Exiting.")
-        }
-
-        val forgeConf = ForgeServerConfigurationLoaderFile(configDir).load()
-        val dbConf = DbConfigurationLoaderFile(configDir).load()
-
-        return ConfigurationPack(configDir, forgeConf, dbConf)
     }
 
     private fun initLog(logger: Logger, configDir: String, logFilenamePrefix: String = "", serverNameSuffix: String = "") {
@@ -129,29 +147,6 @@ abstract class AbstractForgeServer() : ForgeServer {
         } else {
             println("!!! No logback configuration file found. Using default configuration.")
         }
-    }
-
-
-    private fun createDataSource(dbConf: DbConfiguration): ComboPooledDataSource {
-        val p = Properties(System.getProperties())
-        p["com.mchange.v2.log.MLog"] = "com.mchange.v2.log.FallbackMLog"
-        p["com.mchange.v2.log.FallbackMLog.DEFAULT_CUTOFF_LEVEL"] = "OFF"
-        System.setProperties(p)
-
-        val comboPooledDataSource = ComboPooledDataSource()
-        comboPooledDataSource.jdbcUrl = dbConf.dbDsn
-        comboPooledDataSource.user = dbConf.dbUsername
-        comboPooledDataSource.password = dbConf.dbPassword
-        comboPooledDataSource.maxStatements = dbConf.cacheMaxStatements
-        comboPooledDataSource.initialPoolSize = dbConf.initialPoolSize
-        comboPooledDataSource.minPoolSize = dbConf.minPoolSize
-        comboPooledDataSource.maxPoolSize = dbConf.maxPoolSize
-        comboPooledDataSource.idleConnectionTestPeriod = dbConf.idleConnectionTestPeriod
-        comboPooledDataSource.isTestConnectionOnCheckin = dbConf.testConnectionOnCheckIn
-        comboPooledDataSource.isTestConnectionOnCheckout = dbConf.testConnectionOnCheckout
-        comboPooledDataSource.connectionCustomizerClassName = "com.bolyartech.forge.server.db.C3p0ConnectionCustomizer"
-
-        return comboPooledDataSource
     }
 }
 
