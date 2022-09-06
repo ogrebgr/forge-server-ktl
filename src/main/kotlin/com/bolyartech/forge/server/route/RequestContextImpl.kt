@@ -258,10 +258,10 @@ class RequestContextImpl(private val httpReq: HttpServletRequest, private val ro
     }
 
 
-    private fun extractParameters(queryString: String, to: MutableMap<String, MutableList<String>>) {
+    private fun extractParameters(queryString: String?, to: MutableMap<String, MutableList<String>>) {
         if (!Strings.isNullOrEmpty(queryString)) {
             try {
-                val split = queryString.split("&".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                val split = queryString!!.split("&".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 for (aSplit in split) {
                     val keyValue = aSplit.split("=".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                     if (keyValue.size == 1) {
@@ -288,7 +288,7 @@ class RequestContextImpl(private val httpReq: HttpServletRequest, private val ro
             return
         }
 
-        if (httpReq.method.equals(HttpMethod.POST.methodName.lowercase())) {
+        if (httpReq.method.lowercase().equals(HttpMethod.POST.methodName.lowercase())) {
             val contentType = httpReq.getHeader(HEADER_CONTENT_TYPE)
             if (contentType != null) {
                 if (contentType.lowercase(Locale.getDefault()).contains(CONTENT_TYPE_FORM_ENCODED.lowercase(Locale.getDefault()))) {
