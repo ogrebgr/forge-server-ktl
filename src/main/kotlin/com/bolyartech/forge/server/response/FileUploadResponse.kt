@@ -1,7 +1,6 @@
 package com.bolyartech.forge.server.response
 
 import com.bolyartech.forge.server.response.StringResponse.Companion.MIN_SIZE_FOR_GZIP
-import com.google.common.base.Strings
 import com.google.common.io.ByteStreams
 import com.google.common.io.CountingOutputStream
 import jakarta.servlet.http.Cookie
@@ -11,47 +10,21 @@ import java.text.MessageFormat
 import java.util.zip.GZIPOutputStream
 
 /**
- * Response for uploading file (from server point of view)
+ * Response for uploading file (from server point of view, from user POV it is download)
  */
-class FileUploadResponse : AbstractResponse {
-    private val file: File
-    private val enableGzip: Boolean
+class FileUploadResponse(
+    filePath: String,
+    private val cookiesToSet: List<Cookie> = emptyList(),
+    private val enableGzip: Boolean = true
+) : AbstractResponse() {
+    private val file: File = File(filePath)
 
-    /**
-     * Creates new FileUploadResponse
-     *
-     * @param filePath   Path to the file which will be uploaded
-     * @param enableGzip if true Gzip compression will be used if supported by the client
-     */
-    constructor(filePath: String, enableGzip: Boolean) {
-        require(!Strings.isNullOrEmpty(filePath)) { "filePath null or empty" }
-        file = File(filePath)
-        require(file.exists()) { "No such file exist: $filePath" }
-        this.enableGzip = enableGzip
-    }
-
-    /**
-     * @param cookiesToSet list of cookies to be set
-     * @param @param       filePath   Path to the file which will be uploaded
-     */
-    constructor(cookiesToSet: List<Cookie>, filePath: String) : super(cookiesToSet) {
-        file = File(filePath)
-        require(file.exists()) { "No such file exist: $filePath" }
-        enableGzip = false
-    }
-
-    /**
-     * @param cookiesToSet list of cookies to be set
-     * @param filePath     Path to the file which will be uploaded
-     * @param enableGzip   if true Gzip compression will be used if supported by the client
-     */
-    constructor(cookiesToSet: List<Cookie>, filePath: String, enableGzip: Boolean) : super(cookiesToSet) {
-        file = File(filePath)
-        require(file.exists()) { "No such file exist: $filePath" }
-        this.enableGzip = enableGzip
-    }
 
     override fun toServletResponse(resp: HttpServletResponse): Long {
+        if (!file.exists()) {
+            throw IllegalArgumentException("No such file ${file.absolutePath}")
+        }
+
         addCookiesAndHeaders(resp)
         resp.contentType = HttpHeaders.CONTENT_TYPE_OCTET
         resp.setHeader(

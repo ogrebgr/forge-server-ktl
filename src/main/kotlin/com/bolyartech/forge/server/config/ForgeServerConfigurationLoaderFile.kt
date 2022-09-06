@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
+import javax.annotation.Nonnull
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
 
@@ -77,8 +78,25 @@ class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : Forg
 
         val downloadsDir = prop.getProperty(PROP_DOWNLOADS_DIR)
 
+        return ForgeServerConfiguration(
+            logName,
+            staticDir,
+            isPathInfoEnabled,
+            maxSlashes,
+            normalizePath(uploadsDir),
+            normalizePath(downloadsDir)
+        )
+    }
 
+    private fun normalizePath(@Nonnull path: String): String {
+        var pathTmp = path.lowercase(Locale.getDefault())
 
-        return ForgeServerConfiguration(logName, staticDir, isPathInfoEnabled, maxSlashes, uploadsDir, downloadsDir)
+        if (path.length > 1) {
+            if (path.endsWith("/")) {
+                pathTmp = path.substring(0, path.length - 1)
+            }
+        }
+
+        return pathTmp
     }
 }
