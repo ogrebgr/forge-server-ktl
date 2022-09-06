@@ -3,6 +3,7 @@ package com.bolyartech.forge.server
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.joran.JoranConfigurator
 import ch.qos.logback.core.joran.spi.JoranException
+import com.bolyartech.forge.server.ForgeServer.Companion.initLog
 import com.bolyartech.forge.server.config.ForgeConfigurationException
 import com.bolyartech.forge.server.config.ForgeServerConfiguration
 import com.bolyartech.forge.server.config.ForgeServerConfigurationLoaderFile
@@ -77,6 +78,29 @@ interface ForgeServer {
 
             return ConfigurationPack(configDir, forgeConf, dbConf)
         }
+
+        fun initLog(logger: Logger, configDir: String, logFilenamePrefix: String = "", serverNameSuffix: String = "") {
+            val context = LoggerFactory.getILoggerFactory() as LoggerContext
+            val jc = JoranConfigurator()
+            jc.context = context
+            context.reset()
+
+            context.putProperty("application-name", logFilenamePrefix + serverNameSuffix)
+
+            val f = File(configDir, "logback.xml")
+            println("Will try logback config: " + f.absolutePath)
+            if (f.exists()) {
+                val logbackConfigFilePath = f.absolutePath
+                try {
+                    jc.doConfigure(logbackConfigFilePath)
+                    logger.info("+++ logback initialized OK")
+                } catch (e: JoranException) {
+                    e.printStackTrace()
+                }
+            } else {
+                println("!!! No logback configuration file found. Using default configuration.")
+            }
+        }
     }
 }
 
@@ -100,7 +124,6 @@ abstract class AbstractForgeServer() : ForgeServer {
         onStart()
 
         currentConfig = configurationPack
-        initLog(logger, currentConfig!!.configurationDirectory.pathString, currentConfig!!.forgeServerConfiguration.serverLogName)
 
         val dbDataSource = createDbDataSource(currentConfig!!.dbConfiguration)
         dbDataSource.connection.use {
@@ -124,29 +147,6 @@ abstract class AbstractForgeServer() : ForgeServer {
 
         isStarted = false
         isShutdown = true
-    }
-
-    private fun initLog(logger: Logger, configDir: String, logFilenamePrefix: String = "", serverNameSuffix: String = "") {
-        val context = LoggerFactory.getILoggerFactory() as LoggerContext
-        val jc = JoranConfigurator()
-        jc.context = context
-        context.reset()
-
-        context.putProperty("application-name", logFilenamePrefix + serverNameSuffix)
-
-        val f = File(configDir, "logback.xml")
-        println("Will try logback config: " + f.absolutePath)
-        if (f.exists()) {
-            val logbackConfigFilePath = f.absolutePath
-            try {
-                jc.doConfigure(logbackConfigFilePath)
-                logger.info("+++ logback initialized OK")
-            } catch (e: JoranException) {
-                e.printStackTrace()
-            }
-        } else {
-            println("!!! No logback configuration file found. Using default configuration.")
-        }
     }
 }
 

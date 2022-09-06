@@ -11,5 +11,5 @@ interface RouteHandler {
 }
 
 interface RouteHandlerFlexible : RouteHandler {
-    fun willingToHandle(urlPath: String): Boolean
+    fun willingToHandle(pathInfo: String): Boolean
 }

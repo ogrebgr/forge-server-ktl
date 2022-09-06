@@ -28,7 +28,12 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
             HttpMethod.GET -> {
                 when (route) {
                     is RouteExact -> registerActual(endpointsGetExact, moduleName, route)
-                    is RouteFlexible -> registerActual(endpointsGetFlexible, moduleName, route)
+                    is RouteFlexible -> {
+                        if (!route.getPath().endsWith("/")) {
+                            throw RouteRegisterException("Flexible routes must end with a dash (/)")
+                        }
+                        registerActual(endpointsGetFlexible, moduleName, route)
+                    }
                     else -> {
                         throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
                     }
@@ -37,7 +42,12 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
             HttpMethod.POST -> {
                 when (route) {
                     is RouteExact -> registerActual(endpointsPostExact, moduleName, route)
-                    is RouteFlexible -> registerActual(endpointsPostFlexible, moduleName, route)
+                    is RouteFlexible -> {
+                        if (!route.getPath().endsWith("/")) {
+                            throw RouteRegisterException("Flexible routes must end with a dash (/)")
+                        }
+                        registerActual(endpointsPostFlexible, moduleName, route)
+                    }
                     else -> {
                         throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
                     }
@@ -46,7 +56,12 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
             HttpMethod.PUT -> {
                 when (route) {
                     is RouteExact -> registerActual(endpointsPutExact, moduleName, route)
-                    is RouteFlexible -> registerActual(endpointsPutFlexible, moduleName, route)
+                    is RouteFlexible -> {
+                        if (!route.getPath().endsWith("/")) {
+                            throw RouteRegisterException("Flexible routes must end with a dash (/)")
+                        }
+                        registerActual(endpointsPutFlexible, moduleName, route)
+                    }
                     else -> {
                         throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
                     }
@@ -55,7 +70,12 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
             HttpMethod.DELETE -> {
                 when (route) {
                     is RouteExact -> registerActual(endpointsDeleteExact, moduleName, route)
-                    is RouteFlexible -> registerActual(endpointsDeleteFlexible, moduleName, route)
+                    is RouteFlexible -> {
+                        if (!route.getPath().endsWith("/")) {
+                            throw RouteRegisterException("Flexible routes must end with a dash (/)")
+                        }
+                        registerActual(endpointsDeleteFlexible, moduleName, route)
+                    }
                     else -> {
                         throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
                     }
@@ -240,4 +260,8 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
             return pathTmp
         }
     }
+}
+
+class RouteRegisterException : Exception {
+    constructor(message: String) : super(message)
 }

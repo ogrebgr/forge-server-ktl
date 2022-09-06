@@ -10,6 +10,7 @@ interface RouteRegister {
      * @param route            Route
      * @see .registerStatics
      */
+    @Throws(RouteRegisterException::class)
     fun register(moduleName: String, route: Route)
 
     /**

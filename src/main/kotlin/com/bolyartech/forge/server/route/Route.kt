@@ -146,7 +146,7 @@ class RouteFlexible(httpMethod: HttpMethod, private val pathPatternPrefix: Strin
             return false
         }
 
-        return (routeHandler as RouteHandlerFlexible).willingToHandle(urlPathNorm.substring(pathPatternPrefix.length))
+        return (routeHandler as RouteHandlerFlexible).willingToHandle(urlPathNorm.substring(pathPatternPrefix.length + 1))
     }
 
     override fun getPath(): String {
