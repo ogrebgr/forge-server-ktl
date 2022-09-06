@@ -3,14 +3,12 @@ package com.bolyartech.forge.server
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.joran.JoranConfigurator
 import ch.qos.logback.core.joran.spi.JoranException
-import com.bolyartech.forge.server.ForgeServer.Companion.initLog
 import com.bolyartech.forge.server.config.ForgeConfigurationException
 import com.bolyartech.forge.server.config.ForgeServerConfiguration
 import com.bolyartech.forge.server.config.ForgeServerConfigurationLoaderFile
 import com.bolyartech.forge.server.config.detectConfigurationDirectory
 import com.bolyartech.forge.server.db.DbConfiguration
 import com.bolyartech.forge.server.db.DbConfigurationLoaderFile
-import com.bolyartech.forge.server.db.DbPool
 import com.mchange.v2.c3p0.ComboPooledDataSource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -19,11 +17,12 @@ import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.util.*
+import kotlin.io.path.exists
 import kotlin.io.path.pathString
 
 interface ForgeServer {
     @Throws(ForgeConfigurationException::class)
-    fun start(configurationPack: ConfigurationPack)
+    fun start(configurationPack: ConfigurationPack, fileSystem: FileSystem)
     fun shutdown()
 
     fun onStart()
@@ -34,7 +33,8 @@ interface ForgeServer {
     fun createDbDataSource(dbConfig: DbConfiguration): ComboPooledDataSource
     fun createWebServer(
         forgeConfig: ConfigurationPack,
-        dbDataSource: ComboPooledDataSource
+        dbDataSource: ComboPooledDataSource,
+        fileSystem: FileSystem
     ): WebServer
 
     data class ConfigurationPack(
@@ -111,29 +111,46 @@ abstract class AbstractForgeServer() : ForgeServer {
     private var isStarted = false
     private var isShutdown = false
 
-    private var currentConfig: ForgeServer.ConfigurationPack? = null
-    private var currentDbPool: DbPool? = null
+    private var config: ForgeServer.ConfigurationPack? = null
+    private var fileSystem: FileSystem? = null
 
     private var webServer: WebServer? = null
 
     @Override
-    override fun start(configurationPack: ForgeServer.ConfigurationPack) {
+    override fun start(configurationPack: ForgeServer.ConfigurationPack, fileSystem: FileSystem) {
         require(!isStarted)
         require(!isShutdown)
 
         onStart()
 
-        currentConfig = configurationPack
+        config = configurationPack
+        this.fileSystem = fileSystem
 
-        val dbDataSource = createDbDataSource(currentConfig!!.dbConfiguration)
+        if (config!!.forgeServerConfiguration.uploadsDirectory.isNotEmpty()) {
+            val ulDir = this.fileSystem!!.getPath(config!!.forgeServerConfiguration.uploadsDirectory)
+            if (!ulDir.exists()) {
+                logger.error("Uploads dir specified in forge.conf (${ulDir.pathString}) does not exists. Leave blank if not used.")
+                return
+            }
+        }
+
+        if (config!!.forgeServerConfiguration.downloadsDirectory.isNotEmpty()) {
+            val dlDir = this.fileSystem!!.getPath(config!!.forgeServerConfiguration.downloadsDirectory)
+            if (!dlDir.exists()) {
+                logger.error("Downloads dir specified in forge.conf (${dlDir.pathString}) does not exists. Leave blank if not used.")
+                return
+            }
+        }
+
+        val dbDataSource = createDbDataSource(config!!.dbConfiguration)
         dbDataSource.connection.use {
             // just testing if acquiring of a db connection is successful
-            logger.info("Using DB ${currentConfig!!.dbConfiguration.dbDsn}")
+            logger.info("Using DB ${config!!.dbConfiguration.dbDsn}")
         }
 
 
         onBeforeWebServerStart()
-        webServer = createWebServer(currentConfig!!, dbDataSource)
+        webServer = createWebServer(config!!, dbDataSource, fileSystem)
         webServer!!.start()
         onAfterWebServerStart(webServer!!)
 

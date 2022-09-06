@@ -7,6 +7,8 @@ data class ForgeServerConfiguration(
     val staticFilesDir: String,
     val isPathInfoEnabled: Boolean,
     val maxSlashesInPathInfo: Int,
+    val uploadsDirectory: String,
+    val downloadsDirectory: String,
 ) {
     companion object {
         const val DEFAULT_IS_PATH_INFO_ENABLED = true

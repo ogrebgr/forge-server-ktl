@@ -14,6 +14,8 @@ class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : Forg
         private const val PROP_STATIC_FILES_DIR = "static_files_dir"
         private const val PROP_PATH_INFO_ENABLED = "path_info_enabled"
         private const val PROP_MAX_SLASHES_IN_PATH_INFO = "max_slashes_in_path_info"
+        private const val PROP_UPLOADS_DIR = "uploads_dir"
+        private const val PROP_DOWNLOADS_DIR = "downloads_dir"
     }
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -71,6 +73,12 @@ class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : Forg
             )
         }
 
-        return ForgeServerConfiguration(logName, staticDir, isPathInfoEnabled, maxSlashes)
+        val uploadsDir = prop.getProperty(PROP_UPLOADS_DIR)
+
+        val downloadsDir = prop.getProperty(PROP_DOWNLOADS_DIR)
+
+
+
+        return ForgeServerConfiguration(logName, staticDir, isPathInfoEnabled, maxSlashes, uploadsDir, downloadsDir)
     }
 }
