@@ -5,7 +5,7 @@ import jakarta.servlet.http.Cookie
 /**
  * JSON string response
  */
-class JsonResponse : AbstractStringResponse {
+open class JsonResponse : AbstractStringResponse {
     constructor(str: String) : super(str) {}
     constructor(cookiesToSet: List<Cookie>, str: String) : super(cookiesToSet, str) {}
     constructor(cookiesToSet: List<Cookie>, str: String, enableGzipSupport: Boolean) : super(
