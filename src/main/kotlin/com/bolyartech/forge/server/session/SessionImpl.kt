@@ -11,7 +11,7 @@ class SessionImpl(private val httpSession: HttpSession) : Session {
         return httpSession.id
     }
 
-    override fun <T> getVar(varName: String): T {
+    override fun <T> getVar(varName: String): T? {
         @Suppress("UNCHECKED_CAST")
         return httpSession.getAttribute(varName) as T
     }

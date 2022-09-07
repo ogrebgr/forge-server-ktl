@@ -17,7 +17,7 @@ interface Session {
      * @param <T>     Type of the value (inferred)
      * @return Value of the session variable or null if not set
     </T> */
-    fun <T> getVar(varName: String): T
+    fun <T> getVar(varName: String): T?
 
     /**
      * Sets session variable
