@@ -2,7 +2,6 @@ package com.bolyartech.forge.server.route
 
 import com.bolyartech.forge.server.HttpMethod
 import org.slf4j.LoggerFactory
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import javax.annotation.Nonnull
 
@@ -30,7 +29,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     is RouteExact -> registerActual(endpointsGetExact, moduleName, route)
                     is RouteFlexible -> {
                         if (!route.getPath().endsWith("/")) {
-                            throw RouteRegisterException("Flexible routes must end with a dash (/)")
+                            throw RouteRegisterException("Flexible routes must end with a dash (/): ${route.getPath()}")
                         }
                         registerActual(endpointsGetFlexible, moduleName, route)
                     }
@@ -44,7 +43,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     is RouteExact -> registerActual(endpointsPostExact, moduleName, route)
                     is RouteFlexible -> {
                         if (!route.getPath().endsWith("/")) {
-                            throw RouteRegisterException("Flexible routes must end with a dash (/)")
+                            throw RouteRegisterException("Flexible routes must end with a dash (/) ${route.getPath()}")
                         }
                         registerActual(endpointsPostFlexible, moduleName, route)
                     }
@@ -58,7 +57,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     is RouteExact -> registerActual(endpointsPutExact, moduleName, route)
                     is RouteFlexible -> {
                         if (!route.getPath().endsWith("/")) {
-                            throw RouteRegisterException("Flexible routes must end with a dash (/)")
+                            throw RouteRegisterException("Flexible routes must end with a dash (/) ${route.getPath()}")
                         }
                         registerActual(endpointsPutFlexible, moduleName, route)
                     }
@@ -72,7 +71,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     is RouteExact -> registerActual(endpointsDeleteExact, moduleName, route)
                     is RouteFlexible -> {
                         if (!route.getPath().endsWith("/")) {
-                            throw RouteRegisterException("Flexible routes must end with a dash (/)")
+                            throw RouteRegisterException("Flexible routes must end with a dash (/) ${route.getPath()}")
                         }
                         registerActual(endpointsDeleteFlexible, moduleName, route)
                     }
@@ -249,15 +248,13 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
 
     companion object {
         fun normalizePath(@Nonnull path: String): String {
-            var pathTmp = path.lowercase(Locale.getDefault())
-
             if (path.length > 1) {
                 if (path.endsWith("/")) {
-                    pathTmp = path.substring(0, path.length - 1)
+                    return path.substring(0, path.length - 1)
                 }
             }
 
-            return pathTmp
+            return path
         }
     }
 }
