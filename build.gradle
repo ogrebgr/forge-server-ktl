@@ -4,10 +4,10 @@ plugins {
 }
 
 ext {
-    forge_server_version = '20.0.0-alpha'
+    forge_server_version = '20.0.0-alpha10'
 }
 
-group 'com.bolyartech.forge'
+group 'com.bolyartech.forge.server'
 version forge_server_version
 
 apply plugin: 'maven-publish'
@@ -76,7 +76,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            groupId 'com.bolyartech.forge'
+            groupId 'com.bolyartech.forge.server'
             artifactId 'forge-server'
             version forge_server_version
             artifact sourcesJar
