@@ -123,7 +123,7 @@ abstract class AbstractRoute(private val httpMethod: HttpMethod, val routeHandle
     }
 }
 
-class RouteExact(httpMethod: HttpMethod, private val path: String, routeHandler: RouteHandler) :
+open class RouteExact(httpMethod: HttpMethod, private val path: String, routeHandler: RouteHandler) :
     AbstractRoute(httpMethod, routeHandler) {
 
     override fun isMatching(urlPath: String): Boolean {
@@ -137,7 +137,7 @@ class RouteExact(httpMethod: HttpMethod, private val path: String, routeHandler:
 }
 
 
-class RouteFlexible(httpMethod: HttpMethod, private val pathPatternPrefix: String, routeHandler: RouteHandlerFlexible) :
+open class RouteFlexible(httpMethod: HttpMethod, private val pathPatternPrefix: String, routeHandler: RouteHandlerFlexible) :
     AbstractRoute(httpMethod, routeHandler) {
 
     override fun isMatching(urlPath: String): Boolean {
@@ -146,10 +146,28 @@ class RouteFlexible(httpMethod: HttpMethod, private val pathPatternPrefix: Strin
             return false
         }
 
-        return (routeHandler as RouteHandlerFlexible).willingToHandle(urlPathNorm.substring(pathPatternPrefix.length + 1))
+        return (routeHandler as RouteHandlerFlexible).willingToHandle(urlPathNorm.substring(pathPatternPrefix.length))
     }
 
     override fun getPath(): String {
         return pathPatternPrefix
     }
 }
+
+class GetRouteExact(path: String, routeHandler: RouteHandler) : RouteExact(HttpMethod.GET, path, routeHandler)
+class PostRouteExact(path: String, routeHandler: RouteHandler) : RouteExact(HttpMethod.POST, path, routeHandler)
+class PutRouteExact(path: String, routeHandler: RouteHandler) : RouteExact(HttpMethod.PUT, path, routeHandler)
+class DeleteRouteExact(path: String, routeHandler: RouteHandler) : RouteExact(HttpMethod.DELETE, path, routeHandler)
+
+class GetRouteFlexible(pathPatternPrefix: String, routeHandler: RouteHandlerFlexible) :
+    RouteFlexible(HttpMethod.GET, pathPatternPrefix, routeHandler)
+
+class PostRouteFlexible(pathPatternPrefix: String, routeHandler: RouteHandlerFlexible) :
+    RouteFlexible(HttpMethod.POST, pathPatternPrefix, routeHandler)
+
+class PutRouteFlexible(pathPatternPrefix: String, routeHandler: RouteHandlerFlexible) :
+    RouteFlexible(HttpMethod.PUT, pathPatternPrefix, routeHandler)
+
+class DeleteRouteFlexible(pathPatternPrefix: String, routeHandler: RouteHandlerFlexible) :
+    RouteFlexible(HttpMethod.DELETE, pathPatternPrefix, routeHandler)
+
