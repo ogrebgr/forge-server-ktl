@@ -3,7 +3,6 @@ package com.bolyartech.forge.server.misc
 import com.bolyartech.forge.server.route.InvalidParameterValueException
 import com.bolyartech.forge.server.route.MissingParameterValueException
 import com.bolyartech.forge.server.route.RequestContext
-import com.google.common.base.Strings
 import java.util.*
 
 /**
@@ -14,34 +13,6 @@ class Params private constructor() {
     companion object {
         private const val GET = "GET"
         private const val POST = "POST"
-
-        @Throws(MissingParameterValueException::class)
-        fun allPresentOrDie(vararg pars: String) {
-            require(pars.isNotEmpty()) { "pars is empty" }
-            for (par in pars) {
-                if (Strings.isNullOrEmpty(par)) {
-                    throw MissingParameterValueException(par)
-                }
-            }
-        }
-
-        /**
-         * Checks if all strings are non-null and non-empty
-         *
-         * @param pars Strings to be checked
-         * @return true if all strings are non-null and non-empty
-         */
-        fun areAllPresent(vararg pars: String): Boolean {
-            var ret = true
-            require(pars.isNotEmpty()) { "pars is empty" }
-            for (par in pars) {
-                if (Strings.isNullOrEmpty(par)) {
-                    ret = false
-                    break
-                }
-            }
-            return ret
-        }
 
         /**
          * Extracts long parameter's value from POST parameters
