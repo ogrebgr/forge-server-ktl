@@ -5,7 +5,7 @@ import jakarta.servlet.http.Cookie
 /**
  * HTML str response
  */
-class HtmlResponse : AbstractStringResponse {
+open class HtmlResponse : AbstractStringResponse {
     companion object {
         private const val CONTENT_TYPE = "text/html;charset=UTF-8"
     }
