@@ -11,7 +11,8 @@ import kotlin.io.path.pathString
 class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : ForgeServerConfigurationLoader {
     companion object {
         const val FORGE_CONF_FILENAME = "forge.conf"
-        private const val PROP_SERVER_LOG_NAME = "server_log_name"
+        private const val PROP_SERVER_NAMES = "server_names"
+        private const val PROP_LOG_PREFIX = "log_prefix"
         private const val PROP_STATIC_FILES_DIR = "static_files_dir"
         private const val PROP_PATH_INFO_ENABLED = "path_info_enabled"
         private const val PROP_MAX_SLASHES_IN_PATH_INFO = "max_slashes_in_path_info"
@@ -33,11 +34,11 @@ class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : Forg
             prop.load(it)
         }
 
-        val logName = prop.getProperty(PROP_SERVER_LOG_NAME)
-        if (logName == null) {
+        val logPrefix = prop.getProperty(PROP_LOG_PREFIX)
+        if (logPrefix == null) {
             logger.error(
                 "Missing {} in forge.conf",
-                PROP_SERVER_LOG_NAME
+                PROP_LOG_PREFIX
             )
         }
 
@@ -49,7 +50,7 @@ class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : Forg
             )
         }
 
-        if (logName == null || staticDir == null) {
+        if (logPrefix == null || staticDir == null) {
             throw ForgeConfigurationException("Missing properties")
         }
 
@@ -78,8 +79,17 @@ class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : Forg
 
         val downloadsDir = prop.getProperty(PROP_DOWNLOADS_DIR)
 
+        val serverNamesTmp = prop.getProperty(PROP_SERVER_NAMES)
+
+        val serverNames = if (serverNamesTmp != null && serverNamesTmp.trim().isNotEmpty()) {
+            serverNamesTmp.split(",").map { it.trim().lowercase() }
+        } else {
+            emptyList<String>()
+        }
+
         return ForgeServerConfiguration(
-            logName,
+            serverNames,
+            logPrefix,
             staticDir,
             isPathInfoEnabled,
             maxSlashes,

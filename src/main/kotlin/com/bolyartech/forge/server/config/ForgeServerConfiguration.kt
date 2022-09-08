@@ -3,7 +3,8 @@ package com.bolyartech.forge.server.config
 import java.io.File
 
 data class ForgeServerConfiguration(
-    val serverLogName: String,
+    val serverNames: List<String>,
+    val logPrefix: String,
     val staticFilesDir: String,
     val isPathInfoEnabled: Boolean,
     val maxSlashesInPathInfo: Int,
@@ -16,7 +17,7 @@ data class ForgeServerConfiguration(
     }
 
     init {
-        if (serverLogName.isEmpty()) {
+        if (logPrefix.isEmpty()) {
             throw IllegalArgumentException("serverLogName cannot be empty")
         }
 
