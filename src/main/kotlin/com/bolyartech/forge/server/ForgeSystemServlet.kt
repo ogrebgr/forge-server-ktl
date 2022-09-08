@@ -18,6 +18,7 @@ import javax.inject.Inject
 
 
 class ForgeSystemServlet @Inject constructor(
+    private val serverNames: List<String>,
     modules: List<SiteModule>,
     private val siteModuleRegister: SiteModuleRegister,
     private val notFoundHandler: RouteHandler? = null,
@@ -40,6 +41,12 @@ class ForgeSystemServlet @Inject constructor(
 
     @Throws(IOException::class)
     private fun processRequest(req: HttpServletRequest, httpResp: HttpServletResponse) {
+        if (serverNames.isNotEmpty()) {
+            if (req.serverName !in serverNames) {
+                notFound(req, httpResp)
+                return
+            }
+        }
         try {
             val method = HttpMethod.valueOf(req.method)
             val route = siteModuleRegister.match(method, req.pathInfo)
