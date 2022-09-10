@@ -36,23 +36,14 @@ class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : Forg
 
         val logPrefix = prop.getProperty(PROP_LOG_PREFIX)
         if (logPrefix == null) {
-            logger.error(
-                "Missing {} in forge.conf",
-                PROP_LOG_PREFIX
-            )
+            throw ForgeConfigurationException("Missing $PROP_LOG_PREFIX in forge.conf")
         }
 
         val staticDir = prop.getProperty(PROP_STATIC_FILES_DIR)
         if (staticDir == null) {
-            logger.error(
-                "Missing {} in forge.conf",
-                PROP_STATIC_FILES_DIR
-            )
+            throw ForgeConfigurationException("Missing $PROP_STATIC_FILES_DIR in forge.conf")
         }
 
-        if (logPrefix == null || staticDir == null) {
-            throw ForgeConfigurationException("Missing properties")
-        }
 
         val isPathInfoEnabledRaw =
             prop.getProperty(PROP_PATH_INFO_ENABLED)
