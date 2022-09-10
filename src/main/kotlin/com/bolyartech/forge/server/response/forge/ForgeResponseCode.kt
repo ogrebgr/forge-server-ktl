@@ -11,5 +11,5 @@ interface ForgeResponseCode {
      *
      * @return Code
      */
-    val code: Int
+    fun getCode(): Int
 }

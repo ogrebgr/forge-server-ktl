@@ -7,17 +7,18 @@ class BasicResponseCodes {
     /**
      * Codes for OK
      */
-    enum class Oks(code: Int) : ForgeResponseCode {
+    enum class Oks(private val _code: Int) : ForgeResponseCode {
         OK(1);
 
-        // used as general code that indicates success
-        override val code = 0
+        override fun getCode(): Int {
+            return _code
+        }
     }
 
     /**
      * Codes for errors
      */
-    enum class Errors(code: Int) : ForgeResponseCode {
+    enum class Errors(private val _code: Int) : ForgeResponseCode {
         ERROR(-1),  // used as general error when we cant/don't want to specify more details
         MISSING_PARAMETERS(-2),  // missing required parameters
         REQUIRES_HTTPS(-3),  // HTTPS protocol must be used
@@ -25,11 +26,12 @@ class BasicResponseCodes {
         INTERNAL_SERVER_ERROR(-5),  // some serious problem occurred on the server
         UPGRADE_NEEDED(-6);
 
-        override val code = 0
-
+        override fun getCode(): Int {
+            return _code
+        }
 
         companion object {
-            private val MAP: Map<Int, Errors> = Errors.values().associateBy { it.code }
+            private val MAP: Map<Int, Errors> = Errors.values().associateBy { it._code }
 
             @Throws(java.lang.IllegalArgumentException::class)
             fun fromInt(i: Int): Errors {

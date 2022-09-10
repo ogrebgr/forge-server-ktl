@@ -39,7 +39,7 @@ open class ForgeResponse : JsonResponse {
      * @param resultCode Result code
      */
     constructor(resultCode: ForgeResponseCode) : super("") {
-        this.resultCode = resultCode.code
+        this.resultCode = resultCode.getCode()
     }
 
     /**
@@ -70,7 +70,7 @@ open class ForgeResponse : JsonResponse {
      * @param string     Data
      */
     constructor(resultCode: ForgeResponseCode, string: String?) : super(string!!) {
-        this.resultCode = resultCode.code
+        this.resultCode = resultCode.getCode()
     }
 
     /**
@@ -84,7 +84,7 @@ open class ForgeResponse : JsonResponse {
         string!!,
         enableGzipSupport
     ) {
-        this.resultCode = resultCode.code
+        this.resultCode = resultCode.getCode()
     }
 
     override fun toServletResponse(resp: HttpServletResponse): Long {
