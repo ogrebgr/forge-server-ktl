@@ -126,9 +126,11 @@ abstract class AbstractRoute(private val httpMethod: HttpMethod, val routeHandle
 open class RouteExact(httpMethod: HttpMethod, private val path: String, routeHandler: RouteHandler) :
     AbstractRoute(httpMethod, routeHandler) {
 
+    private val pathNormalized = RouteRegisterImpl.normalizePath(path)
+
     override fun isMatching(urlPath: String): Boolean {
         val urlPathNorm = RouteRegisterImpl.normalizePath(urlPath)
-        return urlPathNorm == path
+        return urlPathNorm == pathNormalized
     }
 
     override fun getPath(): String {
