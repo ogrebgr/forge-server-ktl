@@ -31,6 +31,10 @@ class VelocityTemplateEngine(private val velocityEngine: VelocityEngine, templat
         return sw.toString()
     }
 
+    override fun isAssigned(varName: String): Boolean {
+        return velocityContext.get(varName) != null
+    }
+
     init {
         this.templatePathPrefix = templatePathPrefix
     }

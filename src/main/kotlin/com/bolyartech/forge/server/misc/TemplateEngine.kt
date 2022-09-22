@@ -38,4 +38,12 @@ interface TemplateEngine {
      * @return Rendered string, usually HTML
      */
     fun render(templateName: String): String
+
+    /**
+     * Checks if the variable name varName already has assigned value
+     *
+     * @param varName name of the variable
+     * @return true if the variable is already assigned
+     */
+    fun isAssigned(varName: String): Boolean
 }
