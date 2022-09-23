@@ -27,7 +27,8 @@ class RequestContextImpl(private val httpReq: HttpServletRequest, private val ro
     private val postParams: MutableMap<String, MutableList<String>> = mutableMapOf()
     private val cookieParams: MutableMap<String, Cookie> = mutableMapOf()
     private val pathInfoParams: MutableList<String> = mutableListOf()
-    private val pathInfoString: String = if (httpReq.pathInfo.length > routePath.length) httpReq.pathInfo.substring(routePath.length) else ""
+    private val pathInfoString: String =
+        if (httpReq.pathInfo.length > routePath.length) httpReq.pathInfo.substring(routePath.length) else ""
     private var session: Session? = null
     private var cookiesInitialized = false
     private var isMultipart = false

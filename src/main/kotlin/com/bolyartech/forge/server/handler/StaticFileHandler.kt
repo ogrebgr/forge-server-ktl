@@ -15,7 +15,7 @@ class StaticFileHandler constructor(
     private val mimeTypeResolver: MimeTypeResolver,
     private val enableGzip: Boolean = true,
     directoryIndexFilenames: String = ""
-) : RouteHandlerFlexible {
+) : RouteHandlerRuntimeResolved {
     private val directoryIndexes: MutableList<String> = mutableListOf()
     private val sourceDirFinal = if (sourceDir.endsWith(File.separator)) {
         sourceDir
@@ -81,9 +81,7 @@ class StaticFileHandler constructor(
 
     override fun willingToHandle(urlPath: String): Boolean {
         val file = File(sourceDirFinal + urlPath)
-        return if (file.exists() && file.isFile) {
-            true
-        } else {
+        return if (urlPath.endsWith("/")) {
             if (file.isDirectory && directoryIndexes.size > 0) {
                 for (f in directoryIndexes) {
                     val tmp = File(file, f)
@@ -94,6 +92,8 @@ class StaticFileHandler constructor(
             }
 
             false
+        } else {
+            file.exists() && file.isFile
         }
     }
 }

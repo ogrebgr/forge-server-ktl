@@ -2,7 +2,7 @@ package com.bolyartech.forge.server.route
 
 import com.bolyartech.forge.server.HttpMethod
 import com.bolyartech.forge.server.handler.RouteHandler
-import com.bolyartech.forge.server.handler.RouteHandlerFlexible
+import com.bolyartech.forge.server.handler.RouteHandlerRuntimeResolved
 import com.bolyartech.forge.server.response.Response
 import com.bolyartech.forge.server.response.ResponseException
 import jakarta.servlet.http.HttpServletRequest
@@ -123,14 +123,12 @@ abstract class AbstractRoute(private val httpMethod: HttpMethod, val routeHandle
     }
 }
 
+
 open class RouteExact(httpMethod: HttpMethod, private val path: String, routeHandler: RouteHandler) :
     AbstractRoute(httpMethod, routeHandler) {
 
-    private val pathNormalized = RouteRegisterImpl.normalizePath(path)
-
     override fun isMatching(urlPath: String): Boolean {
-        val urlPathNorm = RouteRegisterImpl.normalizePath(urlPath)
-        return urlPathNorm == pathNormalized
+        return urlPath == path
     }
 
     override fun getPath(): String {
@@ -138,17 +136,24 @@ open class RouteExact(httpMethod: HttpMethod, private val path: String, routeHan
     }
 }
 
+open class RouteStartsWith(httpMethod: HttpMethod, path: String, routeHandler: RouteHandler) :
+    RouteExact(httpMethod, path, routeHandler) {
 
-open class RouteFlexible(httpMethod: HttpMethod, private val pathPatternPrefix: String, routeHandler: RouteHandlerFlexible) :
+    override fun isMatching(urlPath: String): Boolean {
+        return urlPath.startsWith(getPath())
+    }
+}
+
+
+open class RouteRuntimeResolved(
+    httpMethod: HttpMethod,
+    private val pathPatternPrefix: String,
+    routeHandler: RouteHandlerRuntimeResolved
+) :
     AbstractRoute(httpMethod, routeHandler) {
 
     override fun isMatching(urlPath: String): Boolean {
-        val urlPathNorm = RouteRegisterImpl.normalizePath(urlPath)
-        if (!urlPathNorm.startsWith(pathPatternPrefix, true)) {
-            return false
-        }
-
-        return (routeHandler as RouteHandlerFlexible).willingToHandle(urlPathNorm.substring(pathPatternPrefix.length))
+        return (routeHandler as RouteHandlerRuntimeResolved).willingToHandle(urlPath.substring(pathPatternPrefix.length))
     }
 
     override fun getPath(): String {
@@ -161,15 +166,15 @@ class PostRouteExact(path: String, routeHandler: RouteHandler) : RouteExact(Http
 class PutRouteExact(path: String, routeHandler: RouteHandler) : RouteExact(HttpMethod.PUT, path, routeHandler)
 class DeleteRouteExact(path: String, routeHandler: RouteHandler) : RouteExact(HttpMethod.DELETE, path, routeHandler)
 
-class GetRouteFlexible(pathPatternPrefix: String, routeHandler: RouteHandlerFlexible) :
-    RouteFlexible(HttpMethod.GET, pathPatternPrefix, routeHandler)
+class GetRouteRuntimeResolved(pathPatternPrefix: String, routeHandler: RouteHandlerRuntimeResolved) :
+    RouteRuntimeResolved(HttpMethod.GET, pathPatternPrefix, routeHandler)
 
-class PostRouteFlexible(pathPatternPrefix: String, routeHandler: RouteHandlerFlexible) :
-    RouteFlexible(HttpMethod.POST, pathPatternPrefix, routeHandler)
+class PostRouteRuntimeResolved(pathPatternPrefix: String, routeHandler: RouteHandlerRuntimeResolved) :
+    RouteRuntimeResolved(HttpMethod.POST, pathPatternPrefix, routeHandler)
 
-class PutRouteFlexible(pathPatternPrefix: String, routeHandler: RouteHandlerFlexible) :
-    RouteFlexible(HttpMethod.PUT, pathPatternPrefix, routeHandler)
+class PutRouteRuntimeResolved(pathPatternPrefix: String, routeHandler: RouteHandlerRuntimeResolved) :
+    RouteRuntimeResolved(HttpMethod.PUT, pathPatternPrefix, routeHandler)
 
-class DeleteRouteFlexible(pathPatternPrefix: String, routeHandler: RouteHandlerFlexible) :
-    RouteFlexible(HttpMethod.DELETE, pathPatternPrefix, routeHandler)
+class DeleteRouteRuntimeResolved(pathPatternPrefix: String, routeHandler: RouteHandlerRuntimeResolved) :
+    RouteRuntimeResolved(HttpMethod.DELETE, pathPatternPrefix, routeHandler)
 

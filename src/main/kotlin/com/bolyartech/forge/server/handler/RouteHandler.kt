@@ -10,6 +10,6 @@ interface RouteHandler {
 
 }
 
-interface RouteHandlerFlexible : RouteHandler {
+interface RouteHandlerRuntimeResolved : RouteHandler {
     fun willingToHandle(pathInfo: String): Boolean
 }

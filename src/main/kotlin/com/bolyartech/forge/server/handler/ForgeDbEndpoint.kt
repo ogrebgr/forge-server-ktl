@@ -8,7 +8,7 @@ import java.sql.Connection
 import java.sql.SQLException
 
 abstract class ForgeDbEndpoint(private val dbPool: DbPool) : ForgeEndpoint() {
-    abstract fun handleForge(ctx: RequestContext, dbc: Connection) : ForgeResponse
+    abstract fun handleForge(ctx: RequestContext, dbc: Connection): ForgeResponse
 
     final override fun handleForge(ctx: RequestContext): ForgeResponse {
         try {
