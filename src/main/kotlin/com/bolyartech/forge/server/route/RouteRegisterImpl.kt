@@ -35,7 +35,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     is RouteExact -> registerActual(endpointsGetExact, moduleName, route)
                     is RouteRuntimeResolved -> {
                         if (!route.getPath().endsWith("/")) {
-                            throw RouteRegisterExceptionBadPathFormat("RuntimeResolved routes must end with a dash (/): ${route.getPath()}")
+                            logger.warn("RouteRuntimeResolved GET ${route.getPath()} not ending with a slash (/). Will point to single file (if exist)")
                         }
                         registerActual(endpointsGetRuntimeResolved, moduleName, route)
                     }
@@ -52,8 +52,9 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     is RouteExact -> registerActual(endpointsPostExact, moduleName, route)
                     is RouteRuntimeResolved -> {
                         if (!route.getPath().endsWith("/")) {
-                            throw RouteRegisterExceptionBadPathFormat("RuntimeResolved routes must end with a dash (/) ${route.getPath()}")
+                            logger.warn("RouteRuntimeResolved POST ${route.getPath()} not ending with a slash (/). Will point to single file (if exist)")
                         }
+
                         registerActual(endpointsPostRuntimeResolved, moduleName, route)
                     }
                     else -> {
@@ -69,7 +70,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     is RouteExact -> registerActual(endpointsPutExact, moduleName, route)
                     is RouteRuntimeResolved -> {
                         if (!route.getPath().endsWith("/")) {
-                            throw RouteRegisterExceptionBadPathFormat("RuntimeResolved routes must end with a dash (/) ${route.getPath()}")
+                            logger.warn("RouteRuntimeResolved PUT ${route.getPath()} not ending with a slash (/). Will point to single file (if exist)")
                         }
                         registerActual(endpointsPutRuntimeResolved, moduleName, route)
                     }
@@ -86,7 +87,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     is RouteExact -> registerActual(endpointsDeleteExact, moduleName, route)
                     is RouteRuntimeResolved -> {
                         if (!route.getPath().endsWith("/")) {
-                            throw RouteRegisterExceptionBadPathFormat("RuntimeResolved routes must end with a dash (/) ${route.getPath()}")
+                            logger.warn("RouteRuntimeResolved DELETE ${route.getPath()} not ending with a slash (/). Will point to single file (if exist)")
                         }
                         registerActual(endpointsDeleteRuntimeResolved, moduleName, route)
                     }
