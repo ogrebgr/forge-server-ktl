@@ -153,7 +153,13 @@ open class RouteRuntimeResolved(
     AbstractRoute(httpMethod, routeHandler) {
 
     override fun isMatching(urlPath: String): Boolean {
-        return (routeHandler as RouteHandlerRuntimeResolved).willingToHandle(urlPath.substring(pathPatternPrefix.length))
+        return if (urlPath.startsWith(getPath())) {
+            (routeHandler as RouteHandlerRuntimeResolved).willingToHandle(urlPath.substring(pathPatternPrefix.length))
+        } else {
+            false
+        }
+
+
     }
 
     override fun getPath(): String {
