@@ -3,6 +3,7 @@ package com.bolyartech.forge.server
 import com.bolyartech.forge.server.handler.RouteHandler
 import com.bolyartech.forge.server.module.SiteModule
 import com.bolyartech.forge.server.module.SiteModuleRegister
+import com.bolyartech.forge.server.response.HttpHeaders
 import com.bolyartech.forge.server.response.Response
 import com.bolyartech.forge.server.response.ResponseException
 import com.bolyartech.forge.server.route.InvalidParameterValueException
@@ -21,6 +22,8 @@ class ForgeSystemServlet @Inject constructor(
     private val serverNames: List<String>,
     modules: List<SiteModule>,
     private val siteModuleRegister: SiteModuleRegister,
+    private val forceHttps: Boolean,
+    private val httpsPort: Int,
     private val notFoundHandler: RouteHandler? = null,
     private val internalServerErrorHandler: RouteHandler? = null,
 ) : HttpServlet() {
@@ -50,7 +53,29 @@ class ForgeSystemServlet @Inject constructor(
         try {
             val method = HttpMethod.valueOf(req.method)
             val route = siteModuleRegister.match(method, req.pathInfo)
-            route?.let { handle(req, httpResp, it) } ?: notFound(req, httpResp)
+            if (forceHttps && req.scheme.lowercase() == "http") {
+
+                val host = req.getHeader(HttpHeaders.HOST)
+                if (host.isNullOrEmpty()) {
+                    httpResp.status = HttpServletResponse.SC_BAD_REQUEST
+                    return
+                }
+                val uri = if (!req.requestURI.isNullOrEmpty()) req.requestURI else ""
+                val query = if (!req.queryString.isNullOrEmpty()) req.queryString else ""
+
+                val hostPortPair = host.split(":")
+
+                val port = if (hostPortPair.size == 2) {
+                    ":$httpsPort"
+                } else {
+                    ""
+                }
+
+                httpResp.status = HttpServletResponse.SC_MOVED_PERMANENTLY
+                httpResp.setHeader("Location", "https://" + req.serverName + port + uri + query)
+            } else {
+                route?.let { handle(req, httpResp, it) } ?: notFound(req, httpResp)
+            }
         } catch (e: IllegalArgumentException) {
             notFound(req, httpResp)
         }
