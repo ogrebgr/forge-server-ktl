@@ -118,7 +118,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
         route: RouteStartsWith
     ) {
         if (!route.getPath().endsWith("/")) {
-            throw RouteRegisterExceptionBadPathFormat("*StartsWith routes must end with a dash (/): ${route.getPath()}")
+            throw RouteRegisterExceptionBadPathFormat("*StartsWith routes must end with a dash (/): ${route.getPath()} (${route.routeHandler::class.java})")
         }
 
         endpointsStartsWith.forEach {
