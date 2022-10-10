@@ -158,8 +158,6 @@ open class RouteRuntimeResolved(
         } else {
             false
         }
-
-
     }
 
     override fun getPath(): String {
@@ -184,3 +182,7 @@ class PutRouteRuntimeResolved(pathPatternPrefix: String, routeHandler: RouteHand
 class DeleteRouteRuntimeResolved(pathPatternPrefix: String, routeHandler: RouteHandlerRuntimeResolved) :
     RouteRuntimeResolved(HttpMethod.DELETE, pathPatternPrefix, routeHandler)
 
+class GetRouteStartsWith(path: String, routeHandler: RouteHandler) : RouteStartsWith(HttpMethod.GET, path, routeHandler)
+class PostRouteStartsWith(path: String, routeHandler: RouteHandler) : RouteStartsWith(HttpMethod.POST, path, routeHandler)
+class PutRouteStartsWith(path: String, routeHandler: RouteHandler) : RouteStartsWith(HttpMethod.PUT, path, routeHandler)
+class DeleteRouteStartsWith(path: String, routeHandler: RouteHandler) : RouteStartsWith(HttpMethod.DELETE, path, routeHandler)
