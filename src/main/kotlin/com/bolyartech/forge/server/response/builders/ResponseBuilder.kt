@@ -7,8 +7,7 @@ import jakarta.servlet.http.Cookie
 interface ResponseBuilder {
     fun build(): Response
 
-    fun status(status: Int)
-    fun getStatus(): Int
+    fun getStatusCode(): Int
 
     fun addCookie(c: Cookie): ResponseBuilder
     fun cookieExists(cookieName: String): Boolean
@@ -20,26 +19,18 @@ interface ResponseBuilder {
     fun getHeaders(): List<HttpHeader>
     fun removeHeader(headerName: String): ResponseBuilder
 
-//    fun gzipSupport(enable: Boolean) : ResponseBuilder
+    fun gzipSupport(enable: Boolean): ResponseBuilder
+    fun isGzipSupportEnabled(): Boolean
 }
 
 
-abstract class AbstractResponseBuilder constructor() : ResponseBuilder {
+abstract class AbstractResponseBuilder constructor(private val statusCode: Int) : ResponseBuilder {
     private var enableGzipSupport = true
     private val cookies: MutableMap<String, Cookie> = mutableMapOf<String, Cookie>()
     private val headers: MutableMap<String, HttpHeader> = mutableMapOf<String, HttpHeader>()
-    private var status: Int = -1
 
-    override fun status(status: Int) {
-        if (this.status != -1) {
-            throw java.lang.IllegalStateException("Status already set")
-        }
-
-        this.status = status
-    }
-
-    override fun getStatus(): Int {
-        return status
+    override fun getStatusCode(): Int {
+        return statusCode
     }
 
     override fun getCookies(): List<Cookie> {
@@ -88,6 +79,14 @@ abstract class AbstractResponseBuilder constructor() : ResponseBuilder {
         return cookies[headerName] != null
     }
 
+    override fun gzipSupport(enable: Boolean): ResponseBuilder {
+        enableGzipSupport = enable
+        return this
+    }
+
+    override fun isGzipSupportEnabled(): Boolean {
+        return enableGzipSupport
+    }
 
     class CookieAlreadyExistException(cookieName: String) : Exception("Cookie already exist: $cookieName")
     class HeaderAlreadyExistException(headerName: String) : Exception("Header already exist: $headerName")

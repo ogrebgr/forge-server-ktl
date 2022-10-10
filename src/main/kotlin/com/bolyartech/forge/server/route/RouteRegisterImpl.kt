@@ -32,6 +32,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     is RouteStartsWith -> {
                         registerStartsWith(endpointsGetStartsWith, moduleName, route)
                     }
+
                     is RouteExact -> registerActual(endpointsGetExact, moduleName, route)
                     is RouteRuntimeResolved -> {
                         if (!route.getPath().endsWith("/")) {
@@ -39,16 +40,19 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                         }
                         registerActual(endpointsGetRuntimeResolved, moduleName, route)
                     }
+
                     else -> {
                         throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
                     }
                 }
             }
+
             HttpMethod.POST -> {
                 when (route) {
                     is RouteStartsWith -> {
                         registerStartsWith(endpointsPostStartsWith, moduleName, route)
                     }
+
                     is RouteExact -> registerActual(endpointsPostExact, moduleName, route)
                     is RouteRuntimeResolved -> {
                         if (!route.getPath().endsWith("/")) {
@@ -57,16 +61,19 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
 
                         registerActual(endpointsPostRuntimeResolved, moduleName, route)
                     }
+
                     else -> {
                         throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
                     }
                 }
             }
+
             HttpMethod.PUT -> {
                 when (route) {
                     is RouteStartsWith -> {
                         registerStartsWith(endpointsPutStartsWith, moduleName, route)
                     }
+
                     is RouteExact -> registerActual(endpointsPutExact, moduleName, route)
                     is RouteRuntimeResolved -> {
                         if (!route.getPath().endsWith("/")) {
@@ -74,16 +81,19 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                         }
                         registerActual(endpointsPutRuntimeResolved, moduleName, route)
                     }
+
                     else -> {
                         throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
                     }
                 }
             }
+
             HttpMethod.DELETE -> {
                 when (route) {
                     is RouteStartsWith -> {
                         registerStartsWith(endpointsDeleteStartsWith, moduleName, route)
                     }
+
                     is RouteExact -> registerActual(endpointsDeleteExact, moduleName, route)
                     is RouteRuntimeResolved -> {
                         if (!route.getPath().endsWith("/")) {
@@ -91,11 +101,13 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                         }
                         registerActual(endpointsDeleteRuntimeResolved, moduleName, route)
                     }
+
                     else -> {
                         throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
                     }
                 }
             }
+
             else -> throw IllegalArgumentException("Cannot register unsupported HttpMethod")
         }
     }
@@ -164,6 +176,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     }
                 }
             }
+
             HttpMethod.POST -> {
                 when (route) {
                     is RouteStartsWith -> isRegisteredStartsWith(endpointsPostStartsWith, route)
@@ -174,6 +187,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     }
                 }
             }
+
             HttpMethod.PUT -> {
                 when (route) {
                     is RouteStartsWith -> isRegisteredStartsWith(endpointsPutStartsWith, route)
@@ -184,6 +198,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     }
                 }
             }
+
             HttpMethod.DELETE -> {
                 when (route) {
                     is RouteStartsWith -> isRegisteredStartsWith(endpointsDeleteStartsWith, route)
@@ -194,6 +209,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     }
                 }
             }
+
             else -> {
                 throw IllegalArgumentException("route's method (route.getHttpMethod()) is unsupported")
             }
@@ -213,6 +229,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     }
                 }
             }
+
             HttpMethod.POST -> {
                 when (route) {
                     is RouteExact -> endpointsPostExact[route.getPath()]
@@ -223,6 +240,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     }
                 }
             }
+
             HttpMethod.PUT -> {
                 when (route) {
                     is RouteExact -> endpointsPutExact[route.getPath()]
@@ -233,6 +251,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     }
                 }
             }
+
             HttpMethod.DELETE -> {
                 when (route) {
                     is RouteExact -> endpointsDeleteExact[route.getPath()]
@@ -243,6 +262,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                     }
                 }
             }
+
             else -> {
                 logger.warn("route's method (route.getHttpMethod()) is unsupported")
                 null
@@ -275,6 +295,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                 }
                 tmp
             }
+
             HttpMethod.POST -> {
                 var tmp = match(endpointsPostExact, path)
                 if (tmp == null) {
@@ -285,6 +306,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                 }
                 tmp
             }
+
             HttpMethod.PUT -> {
                 var tmp = match(endpointsPutExact, path)
                 if (tmp == null) {
@@ -295,6 +317,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                 }
                 tmp
             }
+
             HttpMethod.DELETE -> {
                 var tmp = match(endpointsDeleteExact, path)
                 if (tmp == null) {
@@ -305,6 +328,7 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                 }
                 tmp
             }
+
             else -> {
                 throw IllegalArgumentException("route's method (route.getHttpMethod()) is unsupported")
             }

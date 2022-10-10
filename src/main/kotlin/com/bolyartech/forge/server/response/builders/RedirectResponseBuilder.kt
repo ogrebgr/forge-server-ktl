@@ -4,7 +4,7 @@ import com.bolyartech.forge.server.response.RedirectResponse
 import jakarta.servlet.http.HttpServletResponse
 
 class RedirectResponseBuilder(private val redirectStatus: RedirectStatus, private val locationField: String) :
-    AbstractResponseBuilder() {
+    AbstractResponseBuilder(redirectStatus.status) {
 
     enum class RedirectStatus(val status: Int) {
         MULTIPLE_CHOICES_300(300),
