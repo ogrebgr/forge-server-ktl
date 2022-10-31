@@ -15,8 +15,9 @@ import java.util.zip.GZIPOutputStream
 class FileUploadResponse(
     filePath: String,
     private val cookiesToSet: List<Cookie> = emptyList(),
+    headersToAdd: List<HttpHeader> = emptyList(),
     private val enableGzip: Boolean = true
-) : AbstractResponse() {
+) : AbstractResponse(cookiesToSet, headersToAdd) {
     private val file: File = File(filePath)
 
 

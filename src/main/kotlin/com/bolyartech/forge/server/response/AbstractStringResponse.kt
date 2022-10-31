@@ -19,7 +19,7 @@ abstract class AbstractStringResponse(
     private val cookiesToSet: List<Cookie> = emptyList(),
     private val headersToAdd: List<HttpHeader> = emptyList(),
     private val enableGzipSupport: Boolean = true
-) : AbstractResponse(), StringResponse {
+) : AbstractResponse(cookiesToSet, headersToAdd), StringResponse {
 
     override fun toServletResponse(resp: HttpServletResponse): Long {
         addCookiesAndHeaders(resp)

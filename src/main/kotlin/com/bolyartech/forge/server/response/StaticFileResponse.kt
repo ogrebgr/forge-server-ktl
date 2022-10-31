@@ -27,7 +27,7 @@ class StaticFileResponse : AbstractResponse {
      * @param file             File to be used as content
      * @param enableGzip       if true Gzip compression will be used if the client supports it
      */
-    constructor(mimeTypeResolver: MimeTypeResolver, file: File, enableGzip: Boolean) {
+    constructor(mimeTypeResolver: MimeTypeResolver, file: File, enableGzip: Boolean) : super(emptyList(), emptyList()) {
         this.file = file
         this.enableGzip = enableGzip
         mimeType = mimeTypeResolver.resolveForFilename(this.file.name)
@@ -40,7 +40,7 @@ class StaticFileResponse : AbstractResponse {
      * @param enableGzip if true Gzip compression will be used if the client supports it
      * @param mimeType   MIME type to be used
      */
-    constructor(file: File, enableGzip: Boolean, mimeType: String?) {
+    constructor(file: File, enableGzip: Boolean, mimeType: String?) : super(emptyList(), emptyList()) {
         this.file = file
         this.enableGzip = enableGzip
         this.mimeType = mimeType
