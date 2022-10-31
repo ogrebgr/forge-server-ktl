@@ -1,6 +1,8 @@
 package com.bolyartech.forge.server.response.forge
 
+import com.bolyartech.forge.server.response.HttpHeader
 import com.bolyartech.forge.server.response.JsonResponse
+import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 
 /**
@@ -16,89 +18,30 @@ import jakarta.servlet.http.HttpServletResponse
  *
  * @see BasicResponseCodes
  */
-open class ForgeResponse : JsonResponse {
-    /**
-     * Returns result code
-     *
-     * @return Result code
-     */
-    val resultCode: Int
+open class ForgeResponse(
+    private val forgeResultCode: Int,
+    str: String = "",
+    cookiesToSet: List<Cookie> = emptyList(),
+    headersToAdd: List<HttpHeader> = emptyList(),
+    enableGzipSupport: Boolean = true
+) : JsonResponse(str, cookiesToSet, headersToAdd, enableGzipSupport) {
 
-    /**
-     * Creates new ForgeResponse
-     *
-     * @param resultCode Result code
-     */
-    constructor(resultCode: Int) : super("") {
-        this.resultCode = resultCode
-    }
+    constructor(
+        forgeResultCode: ForgeResponseCode,
+        str: String = "",
+        cookiesToSet: List<Cookie> = emptyList(),
+        headersToAdd: List<HttpHeader> = emptyList(),
+        enableGzipSupport: Boolean = true
+    ) : this(
+        forgeResultCode.getCode(),
+        str, cookiesToSet, headersToAdd, enableGzipSupport
+    )
 
-    /**
-     * Creates new ForgeResponse
-     *
-     * @param resultCode Result code
-     */
-    constructor(resultCode: ForgeResponseCode) : super("") {
-        this.resultCode = resultCode.getCode()
-    }
-
-    /**
-     * Creates new ForgeResponse
-     *
-     * @param resultCode Result code
-     * @param string     Data
-     */
-    constructor(resultCode: Int, string: String?) : super(string!!) {
-        this.resultCode = resultCode
-    }
-
-    /**
-     * Creates new ForgeResponse
-     *
-     * @param resultCode        Result code
-     * @param string            Data
-     * @param enableGzipSupport if true Gzip compression will be used if the client supports it
-     */
-    constructor(resultCode: Int, string: String?, enableGzipSupport: Boolean) : super(string!!, enableGzipSupport) {
-        this.resultCode = resultCode
-    }
-
-    /**
-     * Creates new ForgeResponse
-     *
-     * @param resultCode Result code
-     * @param string     Data
-     */
-    constructor(resultCode: ForgeResponseCode, string: String?) : super(string!!) {
-        this.resultCode = resultCode.getCode()
-    }
-
-    /**
-     * Creates new ForgeResponse
-     *
-     * @param resultCode        Result code
-     * @param string            Data
-     * @param enableGzipSupport if true Gzip compression will be used if the client supports it
-     */
-    constructor(resultCode: ForgeResponseCode, string: String?, enableGzipSupport: Boolean) : super(
-        string!!,
-        enableGzipSupport
-    ) {
-        this.resultCode = resultCode.getCode()
-    }
 
     override fun toServletResponse(resp: HttpServletResponse): Long {
-        resp.setHeader(FORGE_RESULT_CODE_HEADER, Integer.toString(resultCode))
+        resp.setHeader(FORGE_RESULT_CODE_HEADER, Integer.toString(forgeResultCode))
         return super.toServletResponse(resp)
     }
-
-    /**
-     * Returns the payload
-     *
-     * @return Payload
-     */
-    val payload: String
-        get() = getString()
 
     companion object {
         private const val FORGE_RESULT_CODE_HEADER = "X-Forge-Result-Code"

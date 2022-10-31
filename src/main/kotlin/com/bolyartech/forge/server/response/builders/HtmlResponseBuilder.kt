@@ -16,6 +16,6 @@ open class HtmlResponseBuilder constructor(code: Int) :
 
 
     override fun build(): HtmlResponse {
-        return HtmlResponse(getCookies(), getHeaders(), body, isGzipSupportEnabled())
+        return HtmlResponse(body, getCookies(), getHeaders(), isGzipSupportEnabled())
     }
 }

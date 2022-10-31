@@ -14,70 +14,12 @@ import java.util.zip.GZIPOutputStream
 /**
  * Base class for specialized str responses
  */
-abstract class AbstractStringResponse : AbstractResponse, StringResponse {
-    private lateinit var str: String
-    private var enableGzipSupport: Boolean = true
-
-
-    /**
-     * Creates new AbstractStringResponse
-     *
-     * @param str       String of the response
-     */
-    constructor(str: String) : super() {
-        this.str = str
-
-    }
-
-    /**
-     * Creates new AbstractStringResponse
-     *
-     * @param cookiesToSet list of cookies to be set
-     * @param str       String of the response
-     */
-    constructor(cookiesToSet: List<Cookie>, str: String) : super(cookiesToSet) {
-        enableGzipSupport = false
-    }
-
-    /**
-     * Creates new AbstractStringResponse
-     *
-     * @param cookiesToSet      list of cookies to be set. Pass empty list if no cookies have to be added. Don't pass null because it will throw NullPointerException
-     * @param headersToAdd      list of headers to be added. If the header already exists, it will be overwritten
-     * @param str            String of the response
-     * @param enableGzipSupport if true Gzip compression will be used if the client supports it
-     */
-    constructor(
-        cookiesToSet: List<Cookie>, headersToAdd: List<HttpHeader>, str: String,
-        enableGzipSupport: Boolean
-    ) : super(cookiesToSet, headersToAdd) {
-        this.str = str
-        this.enableGzipSupport = enableGzipSupport
-    }
-
-    /**
-     * Creates new AbstractStringResponse
-     *
-     * @param cookiesToSet      list of cookies to be set
-     * @param str            String of the response
-     * @param enableGzipSupport if true Gzip compression will be used if the client supports it
-     */
-    constructor(cookiesToSet: List<Cookie>, str: String, enableGzipSupport: Boolean) : super(cookiesToSet) {
-        this.str = str
-        this.enableGzipSupport = enableGzipSupport
-    }
-
-    /**
-     * Creates new AbstractStringResponse
-     *
-     * @param str            String of the response
-     * @param enableGzipSupport if true Gzip compression will be used if the client supports it
-     */
-    constructor(str: String, enableGzipSupport: Boolean) {
-        this.str = str
-        this.enableGzipSupport = enableGzipSupport
-    }
-
+abstract class AbstractStringResponse(
+    private val str: String,
+    private val cookiesToSet: List<Cookie> = emptyList(),
+    private val headersToAdd: List<HttpHeader> = emptyList(),
+    private val enableGzipSupport: Boolean = true
+) : AbstractResponse(), StringResponse {
 
     override fun toServletResponse(resp: HttpServletResponse): Long {
         addCookiesAndHeaders(resp)
@@ -85,8 +27,7 @@ abstract class AbstractStringResponse : AbstractResponse, StringResponse {
         resp.contentType = getContentType()
         var cl: Long = 0
         return try {
-            val out: OutputStream
-            out = if (enableGzipSupport && str.toByteArray().size > MIN_SIZE_FOR_GZIP) {
+            val out: OutputStream = if (enableGzipSupport && str.toByteArray().size > MIN_SIZE_FOR_GZIP) {
                 resp.setHeader(HttpHeaders.CONTENT_ENCODING, HttpHeaders.CONTENT_ENCODING_GZIP)
                 CountingOutputStream(GZIPOutputStream(resp.outputStream, true))
             } else {
