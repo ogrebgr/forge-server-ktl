@@ -30,6 +30,10 @@ class ForgeSystemServlet @Inject constructor(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    companion object {
+        const val DEFAULT_SESSION_COOKIE_NAME = "JSESSIONID"
+    }
+
     init {
         if (modules.isNotEmpty()) {
             for (mod in modules) {
