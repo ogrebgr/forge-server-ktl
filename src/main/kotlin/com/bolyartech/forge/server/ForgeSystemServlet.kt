@@ -1,6 +1,7 @@
 package com.bolyartech.forge.server
 
 import com.bolyartech.forge.server.handler.RouteHandler
+import com.bolyartech.forge.server.handler.StaticResourceNotFoundException
 import com.bolyartech.forge.server.module.SiteModule
 import com.bolyartech.forge.server.module.SiteModuleRegister
 import com.bolyartech.forge.server.response.HttpHeaders
@@ -100,6 +101,12 @@ class ForgeSystemServlet @Inject constructor(
                 badRequest(httpResp)
                 return
             }
+
+            if (e.cause is StaticResourceNotFoundException) {
+                notFound(req, httpResp)
+                return
+            }
+
             logger.error("Error handling {}, Error: {}", route, e.message)
             logger.error("Exception: ", e)
             if (internalServerErrorHandler == null) {

@@ -3,6 +3,7 @@ package com.bolyartech.forge.server.route
 import com.bolyartech.forge.server.HttpMethod
 import com.bolyartech.forge.server.handler.RouteHandler
 import com.bolyartech.forge.server.handler.RouteHandlerRuntimeResolved
+import com.bolyartech.forge.server.handler.StaticResourceNotFoundException
 import com.bolyartech.forge.server.response.Response
 import com.bolyartech.forge.server.response.ResponseException
 import jakarta.servlet.http.HttpServletRequest
@@ -96,11 +97,17 @@ abstract class AbstractRoute(private val httpMethod: HttpMethod, val routeHandle
                 ua
             )
         } catch (e: Exception) {
+            val status = if (e.cause is StaticResourceNotFoundException) {
+                HttpServletResponse.SC_NOT_FOUND
+            } else {
+                HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+            }
+
             if (httpResp.getHeader("Content-Length") != null) {
                 contentLength = httpResp.getHeader("Content-Length")
             }
 
-            logger.trace("{} -> {}: {} {}", httpReq.remoteAddr, httpResp.getStatus(), getHttpMethod(), httpReq.pathInfo)
+            logger.trace("{} -> {}: {} {}", httpReq.remoteAddr, status, getHttpMethod(), httpReq.pathInfo)
             loggerWs.trace(
                 "{} - - [{}] \"{} {} {}\" {} {} \"{}\" \"{}\"",
                 httpReq.remoteAddr,
@@ -108,7 +115,7 @@ abstract class AbstractRoute(private val httpMethod: HttpMethod, val routeHandle
                 getHttpMethod(),
                 httpReq.pathInfo,
                 httpReq.protocol,
-                httpResp.getStatus(),
+                status,
                 contentLength,
                 ref,
                 ua
