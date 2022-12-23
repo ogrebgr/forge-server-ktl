@@ -7,7 +7,7 @@ fun ByteArray.toHexString(): String {
     }
 }
 
-private val HEX_CHARS = "0123456789abcdef"
+private const val HEX_CHARS = "0123456789abcdef"
 
 /**
  * Converts hex string to ByteArray

@@ -3,7 +3,6 @@ package com.bolyartech.forge.server.module
 import com.bolyartech.forge.server.HttpMethod
 import com.bolyartech.forge.server.route.Route
 import com.bolyartech.forge.server.route.RouteRegister
-import java.text.MessageFormat
 import javax.inject.Inject
 
 class SiteModuleRegisterImpl @Inject constructor(private val routeRegister: RouteRegister) : SiteModuleRegister {
@@ -18,7 +17,7 @@ class SiteModuleRegisterImpl @Inject constructor(private val routeRegister: Rout
                 routeRegister.register((mod.getSystemName() + " (" + mod.getVersionName()).toString() + ")", route)
             }
         } else {
-            throw IllegalStateException(MessageFormat.format("Module '{0}' already registered", mod.getSystemName()))
+            throw IllegalStateException("Module '${mod.getSystemName()}' already registered")
         }
     }
 
