@@ -122,6 +122,7 @@ abstract class AbstractForgeServer() : ForgeServer {
         require(!isShutdown)
 
         Runtime.getRuntime().addShutdownHook(Thread(ShutDownRunnable()))
+        isStarted = true
 
         onStart()
 
@@ -155,14 +156,11 @@ abstract class AbstractForgeServer() : ForgeServer {
         webServer = createWebServer(config!!, dbDataSource, fileSystem)
         webServer!!.start()
         onAfterWebServerStart(webServer!!)
-
-
-        isStarted = true
     }
 
     @Override
     override fun shutdown() {
-        require(!isStarted)
+        require(isStarted)
 
         ShutDownRunnable().run()
 
