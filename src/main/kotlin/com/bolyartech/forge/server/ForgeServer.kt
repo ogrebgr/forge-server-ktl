@@ -7,9 +7,10 @@ import com.bolyartech.forge.server.config.ForgeConfigurationException
 import com.bolyartech.forge.server.config.ForgeServerConfiguration
 import com.bolyartech.forge.server.config.ForgeServerConfigurationLoaderFile
 import com.bolyartech.forge.server.config.detectConfigurationDirectory
-import com.bolyartech.forge.server.db.DbConfiguration
-import com.bolyartech.forge.server.db.DbConfigurationLoaderFile
-import com.mchange.v2.c3p0.ComboPooledDataSource
+import com.bolyartech.forge.server.db.HikariCpDbConfiguration
+import com.bolyartech.forge.server.db.HikariCpDbConfigurationLoaderFile
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -17,8 +18,10 @@ import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.util.*
+import javax.sql.DataSource
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
+
 
 interface ForgeServer {
     @Throws(ForgeConfigurationException::class)
@@ -30,40 +33,38 @@ interface ForgeServer {
     fun onAfterWebServerStart(webServerStopper: WebServerStopper)
     fun onShutdown()
 
-    fun createDbDataSource(dbConfig: DbConfiguration): ComboPooledDataSource
     fun createWebServer(
         forgeConfig: ConfigurationPack,
-        dbDataSource: ComboPooledDataSource,
         fileSystem: FileSystem
     ): WebServer
+
+    fun testDbConnection()
 
     data class ConfigurationPack(
         val configurationDirectory: Path,
         val forgeServerConfiguration: ForgeServerConfiguration,
-        val dbConfiguration: DbConfiguration,
+        val dbConfiguration: HikariCpDbConfiguration,
     )
 
     companion object {
-        fun createDataSourceHelper(dbConf: DbConfiguration): ComboPooledDataSource {
-            val p = Properties(System.getProperties())
-            p["com.mchange.v2.log.MLog"] = "com.mchange.v2.log.FallbackMLog"
-            p["com.mchange.v2.log.FallbackMLog.DEFAULT_CUTOFF_LEVEL"] = "OFF"
-            System.setProperties(p)
+        fun createDataSourceHelper(dbConf: HikariCpDbConfiguration): DataSource {
+            val config = HikariConfig()
+            config.jdbcUrl = dbConf.dbDsn
+            config.username = dbConf.dbUsername
+            config.password = dbConf.dbPassword
+            if (dbConf.minPoolSize != null) {
+                config.minimumIdle = dbConf.minPoolSize
+            }
+            config.maximumPoolSize = dbConf.maxPoolSize
+            if (dbConf.leakDetectionThresholdMillis != null) {
+                config.leakDetectionThreshold = dbConf.leakDetectionThresholdMillis
+            }
+            config.transactionIsolation = "TRANSACTION_READ_COMMITTED"
+            config.addDataSourceProperty("cachePrepStmts", "true")
+            config.addDataSourceProperty("prepStmtCacheSize", dbConf.prepStmtCacheSize)
+            config.addDataSourceProperty("prepStmtCacheSqlLimit", dbConf.prepStmtCacheSqlLimit)
 
-            val comboPooledDataSource = ComboPooledDataSource()
-            comboPooledDataSource.jdbcUrl = dbConf.dbDsn
-            comboPooledDataSource.user = dbConf.dbUsername
-            comboPooledDataSource.password = dbConf.dbPassword
-            comboPooledDataSource.maxStatements = dbConf.cacheMaxStatements
-            comboPooledDataSource.initialPoolSize = dbConf.initialPoolSize
-            comboPooledDataSource.minPoolSize = dbConf.minPoolSize
-            comboPooledDataSource.maxPoolSize = dbConf.maxPoolSize
-            comboPooledDataSource.idleConnectionTestPeriod = dbConf.idleConnectionTestPeriod
-            comboPooledDataSource.isTestConnectionOnCheckin = dbConf.testConnectionOnCheckIn
-            comboPooledDataSource.isTestConnectionOnCheckout = dbConf.testConnectionOnCheckout
-            comboPooledDataSource.connectionCustomizerClassName = "com.bolyartech.forge.server.db.C3p0ConnectionCustomizer"
-
-            return comboPooledDataSource
+            return HikariDataSource(config)
         }
 
         fun loadConfigurationPack(fs: FileSystem, args: Array<String>): ConfigurationPack {
@@ -74,7 +75,7 @@ interface ForgeServer {
             }
 
             val forgeConf = ForgeServerConfigurationLoaderFile(configDir).load()
-            val dbConf = DbConfigurationLoaderFile(configDir).load()
+            val dbConf = HikariCpDbConfigurationLoaderFile(configDir).load()
 
             return ConfigurationPack(configDir, forgeConf, dbConf)
         }
@@ -145,16 +146,11 @@ abstract class AbstractForgeServer() : ForgeServer {
             }
         }
 
-        val dbDataSource = createDbDataSource(config!!.dbConfiguration)
-        dbDataSource.connection.use {
-            // just testing if acquiring of a db connection is successful
-            logger.info("Using DB ${config!!.dbConfiguration.dbDsn}")
-        }
-
-
         onBeforeWebServerStart()
-        webServer = createWebServer(config!!, dbDataSource, fileSystem)
+        webServer = createWebServer(config!!, fileSystem)
+        testDbConnection()
         webServer!!.start()
+
         onAfterWebServerStart(webServer!!)
     }
 
