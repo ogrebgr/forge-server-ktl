@@ -117,12 +117,14 @@ abstract class AbstractForgeServer() : ForgeServer {
 
     private var webServer: WebServer? = null
 
+    private lateinit var shutdownHook : Thread
+
     @Override
     override fun start(configurationPack: ForgeServer.ConfigurationPack, fileSystem: FileSystem) {
         require(!isStarted)
         require(!isShutdown)
-
-        Runtime.getRuntime().addShutdownHook(Thread(ShutDownRunnable()))
+        shutdownHook = Thread(ShutDownRunnable())
+        Runtime.getRuntime().addShutdownHook(shutdownHook)
         isStarted = true
 
         onStart()
@@ -158,15 +160,16 @@ abstract class AbstractForgeServer() : ForgeServer {
     override fun shutdown() {
         require(isStarted)
 
-        ShutDownRunnable().run()
-
         isStarted = false
         isShutdown = true
+
+        ShutDownRunnable().run()
     }
 
     inner class ShutDownRunnable : Runnable {
         override fun run() {
             synchronized(this@AbstractForgeServer) {
+                Runtime.getRuntime().removeShutdownHook(shutdownHook)
                 webServer?.stop()
                 onShutdown()
             }
