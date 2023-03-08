@@ -40,6 +40,8 @@ interface ForgeServer {
 
     fun testDbConnection()
 
+    fun getInstrumentationReader() : WebServerInstrumentationReader
+
     data class ConfigurationPack(
         val configurationDirectory: Path,
         val forgeServerConfiguration: ForgeServerConfiguration,
@@ -119,6 +121,7 @@ abstract class AbstractForgeServer() : ForgeServer {
 
     private lateinit var shutdownHook : Thread
 
+
     @Override
     override fun start(configurationPack: ForgeServer.ConfigurationPack, fileSystem: FileSystem) {
         require(!isStarted)
@@ -154,6 +157,11 @@ abstract class AbstractForgeServer() : ForgeServer {
         webServer!!.start()
 
         onAfterWebServerStart(webServer!!)
+    }
+
+    override fun getInstrumentationReader(): WebServerInstrumentationReader {
+        require(isStarted)
+        return webServer!!.getInstrumentation()
     }
 
     @Override
