@@ -16,8 +16,14 @@ data class ForgeServerConfiguration(
         const val DEFAULT_IS_PATH_INFO_ENABLED = true
         const val DEFAULT_MAX_SLASHES_IN_PATH_INFO = 10
 
-        fun extractIntValue(prop: Properties, propertyName: String): Int {
-            val tmp = prop.getProperty(propertyName) ?: throw ForgeConfigurationException("$propertyName is missing/empty")
+        fun extractIntValue(prop: Properties, propertyName: String, default: Int? = null): Int {
+            val tmp = prop.getProperty(propertyName) ?: run {
+                if (default != null ) {
+                    return default
+                } else {
+                    throw ForgeConfigurationException("$propertyName is missing/empty")
+                }
+            }
 
             return try {
                 tmp.toInt()
@@ -26,8 +32,8 @@ data class ForgeServerConfiguration(
             }
         }
 
-        fun extractIntValuePositive(prop: Properties, propertyName: String): Int {
-            val tmp = extractIntValue(prop, propertyName)
+        fun extractIntValuePositive(prop: Properties, propertyName: String, default: Int? = null): Int {
+            val tmp = extractIntValue(prop, propertyName, default)
             if (tmp <= 0) {
                 throw ForgeConfigurationException("$propertyName is not positive integer")
             }
@@ -35,8 +41,8 @@ data class ForgeServerConfiguration(
             return tmp
         }
 
-        fun extractIntValue0Positive(prop: Properties, propertyName: String): Int {
-            val tmp = extractIntValue(prop, propertyName)
+        fun extractIntValue0Positive(prop: Properties, propertyName: String, default: Int? = null): Int {
+            val tmp = extractIntValue(prop, propertyName, default)
             if (tmp < 0) {
                 throw ForgeConfigurationException("$propertyName is not positive integer or 0")
             }
@@ -44,13 +50,13 @@ data class ForgeServerConfiguration(
             return tmp
         }
 
-        fun extractStringValue(prop: Properties, propertyName: String): String {
+        fun extractStringValue(prop: Properties, propertyName: String, default: Int? = null): String {
             val tmp = prop.getProperty(propertyName) ?: throw ForgeConfigurationException("$propertyName is missing/empty")
 
             return tmp
         }
 
-        fun extractBooleanValue(prop: Properties, propertyName: String): Boolean {
+        fun extractBooleanValue(prop: Properties, propertyName: String, default: Int? = null): Boolean {
             val tmp = prop.getProperty(propertyName) ?: throw ForgeConfigurationException("$propertyName is missing/empty")
 
             return tmp.toBoolean()

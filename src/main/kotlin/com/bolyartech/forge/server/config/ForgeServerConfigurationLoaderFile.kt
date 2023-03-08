@@ -34,15 +34,10 @@ class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : Forg
             prop.load(it)
         }
 
-        val logPrefix = prop.getProperty(PROP_LOG_PREFIX)
-        if (logPrefix == null) {
-            throw ForgeConfigurationException("Missing $PROP_LOG_PREFIX in forge.conf")
-        }
+        val logPrefix = prop.getProperty(PROP_LOG_PREFIX) ?: throw ForgeConfigurationException("Missing $PROP_LOG_PREFIX in forge.conf")
 
         val staticDir = prop.getProperty(PROP_STATIC_FILES_DIR)
-        if (staticDir == null) {
-            throw ForgeConfigurationException("Missing $PROP_STATIC_FILES_DIR in forge.conf")
-        }
+            ?: throw ForgeConfigurationException("Missing $PROP_STATIC_FILES_DIR in forge.conf")
 
 
         val isPathInfoEnabledRaw =
@@ -73,9 +68,9 @@ class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : Forg
         val serverNamesTmp = prop.getProperty(PROP_SERVER_NAMES)
 
         val serverNames = if (serverNamesTmp != null && serverNamesTmp.trim().isNotEmpty()) {
-            serverNamesTmp.split(",").map { it.trim().lowercase() }
+            serverNamesTmp.split(",").map { it.trim().lowercase() }.filter { it.isNotEmpty()}
         } else {
-            emptyList<String>()
+            emptyList()
         }
 
         return ForgeServerConfiguration(
