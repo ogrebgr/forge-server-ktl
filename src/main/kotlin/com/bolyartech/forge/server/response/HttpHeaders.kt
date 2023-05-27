@@ -10,6 +10,8 @@ interface HttpHeaders {
         const val REFERRER = "Referer"
         const val USER_AGENT = "User-Agent"
         const val LAST_MODIFIED = "Last-Modified"
+        const val CONTENT_TYPE = "Content-Type"
+        const val CONTENT_TYPE_JSON = "application/json"
         const val CONTENT_TYPE_OCTET = "application/octet-stream"
         const val CACHE_CONTROL = "Cache-control"
         const val CACHE_CONTROL_VALUE_NO_CACHE = "no-cache"
