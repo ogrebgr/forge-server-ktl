@@ -10,8 +10,8 @@ interface AsyncTask {
 class AsyncTaskException(msg: String) : Exception(msg)
 
 sealed class AsyncTaskOutcome
-data class AsyncTaskOutcomeOk(val data: String?) : AsyncTaskOutcome()
-data class AsyncTaskOutcomeError(val data: String?) : AsyncTaskOutcome()
+data class AsyncTaskOutcomeOk(val data: String? = null) : AsyncTaskOutcome()
+data class AsyncTaskOutcomeError(val data: String? = null) : AsyncTaskOutcome()
 
 
 data class AsyncTaskData(
