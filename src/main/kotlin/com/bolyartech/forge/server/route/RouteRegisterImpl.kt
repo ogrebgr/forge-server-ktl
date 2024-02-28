@@ -24,6 +24,10 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
     private val endpointsPutStartsWith: MutableList<RouteRegister.Registration> = mutableListOf()
     private val endpointsPutRuntimeResolved: MutableMap<String, RouteRegister.Registration> = mutableMapOf()
 
+    private val endpointsOptionsExact: MutableMap<String, RouteRegister.Registration> = mutableMapOf()
+    private val endpointsOptionsStartsWith: MutableList<RouteRegister.Registration> = mutableListOf()
+    private val endpointsOptionsRuntimeResolved: MutableMap<String, RouteRegister.Registration> = mutableMapOf()
+
 
     override fun register(moduleName: String, route: Route) {
         when (route.getHttpMethod()) {
@@ -100,6 +104,26 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                             logger.warn("RouteRuntimeResolved DELETE ${route.getPath()} not ending with a slash (/). Will point to single file (if exist)")
                         }
                         registerActual(endpointsDeleteRuntimeResolved, moduleName, route)
+                    }
+
+                    else -> {
+                        throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
+                    }
+                }
+            }
+
+            HttpMethod.OPTIONS -> {
+                when (route) {
+                    is RouteStartsWith -> {
+                        registerStartsWith(endpointsOptionsStartsWith, moduleName, route)
+                    }
+
+                    is RouteExact -> registerActual(endpointsOptionsExact, moduleName, route)
+                    is RouteRuntimeResolved -> {
+                        if (!route.getPath().endsWith("/")) {
+                            logger.warn("RouteRuntimeResolved OPTIONS ${route.getPath()} not ending with a slash (/). Will point to single file (if exist)")
+                        }
+                        registerActual(endpointsOptionsRuntimeResolved, moduleName, route)
                     }
 
                     else -> {
@@ -210,6 +234,17 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                 }
             }
 
+            HttpMethod.OPTIONS -> {
+                when (route) {
+                    is RouteStartsWith -> isRegisteredStartsWith(endpointsOptionsStartsWith, route)
+                    is RouteExact -> endpointsOptionsExact.containsKey(route.getPath())
+                    is RouteRuntimeResolved -> endpointsOptionsRuntimeResolved.containsKey(route.getPath())
+                    else -> {
+                        throw IllegalArgumentException("route is of unsupported class {${route.javaClass}}")
+                    }
+                }
+            }
+
             else -> {
                 throw IllegalArgumentException("route's method (route.getHttpMethod()) is unsupported")
             }
@@ -256,6 +291,17 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                 when (route) {
                     is RouteExact -> endpointsDeleteExact[route.getPath()]
                     is RouteRuntimeResolved -> endpointsDeleteRuntimeResolved[route.getPath()]
+                    else -> {
+                        logger.warn("route is of unsupported class {${route.javaClass}}")
+                        null
+                    }
+                }
+            }
+
+            HttpMethod.OPTIONS -> {
+                when (route) {
+                    is RouteExact -> endpointsOptionsExact[route.getPath()]
+                    is RouteRuntimeResolved -> endpointsOptionsRuntimeResolved[route.getPath()]
                     else -> {
                         logger.warn("route is of unsupported class {${route.javaClass}}")
                         null
@@ -325,6 +371,17 @@ class RouteRegisterImpl(isPathInfoEnabled: Boolean, maxPathSegments: Int) : Rout
                 }
                 if (tmp == null) {
                     tmp = match(endpointsDeleteStartsWith, path)
+                }
+                tmp
+            }
+
+            HttpMethod.OPTIONS -> {
+                var tmp = match(endpointsOptionsExact, path)
+                if (tmp == null) {
+                    tmp = match(endpointsOptionsRuntimeResolved, path)
+                }
+                if (tmp == null) {
+                    tmp = match(endpointsOptionsStartsWith, path)
                 }
                 tmp
             }

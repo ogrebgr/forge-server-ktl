@@ -11,6 +11,9 @@ data class ForgeServerConfiguration(
     val maxSlashesInPathInfo: Int,
     val uploadsDirectory: String,
     val downloadsDirectory: String,
+    val accessControlAllowOrigin: String?,
+    val accessControlAllowMethods: String?,
+    val accessControlAllowHeaders: String?
 ) {
     companion object {
         const val DEFAULT_IS_PATH_INFO_ENABLED = true

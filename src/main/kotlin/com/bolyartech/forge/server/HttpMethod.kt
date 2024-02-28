@@ -5,6 +5,7 @@ enum class HttpMethod(val methodName: String) {
     POST("POST"),
     PUT("PUT"),
     DELETE("DELETE"),
+    OPTIONS("OPTIONS"),
     UNSUPPORTED("UNSUPPORTED");
 
 }

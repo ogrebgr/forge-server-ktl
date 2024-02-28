@@ -183,4 +183,9 @@ class ForgeSystemServlet @Inject constructor(
     override fun doDelete(req: HttpServletRequest, httpResp: HttpServletResponse) {
         processRequest(req, httpResp)
     }
+
+    @Throws(IOException::class)
+    override fun doOptions(req: HttpServletRequest, httpResp: HttpServletResponse) {
+        processRequest(req, httpResp)
+    }
 }

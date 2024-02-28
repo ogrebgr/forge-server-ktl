@@ -18,6 +18,9 @@ class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : Forg
         private const val PROP_MAX_SLASHES_IN_PATH_INFO = "max_slashes_in_path_info"
         private const val PROP_UPLOADS_DIR = "uploads_dir"
         private const val PROP_DOWNLOADS_DIR = "downloads_dir"
+        private const val PROP_ACCESS_CONTROL_ALLOW_ORIGIN = "access_control_allow_origin"
+        private const val PROP_ACCESS_CONTROL_ALLOW_METHODS = "access_control_allow_methods"
+        private const val PROP_ACCESS_CONTROL_ALLOW_HEADERS = "access_control_allow_headers"
     }
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -73,6 +76,10 @@ class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : Forg
             emptyList()
         }
 
+        val accessControlAllowOrigin: String? = prop.getProperty(PROP_ACCESS_CONTROL_ALLOW_ORIGIN)
+        val accessControlAllowMethods: String? = prop.getProperty(PROP_ACCESS_CONTROL_ALLOW_METHODS)
+        val accessControlAllowHeaders: String? = prop.getProperty(PROP_ACCESS_CONTROL_ALLOW_HEADERS)
+
         return ForgeServerConfiguration(
             serverNames,
             logPrefix,
@@ -80,7 +87,10 @@ class ForgeServerConfigurationLoaderFile(private val configDirPath: Path) : Forg
             isPathInfoEnabled,
             maxSlashes,
             normalizePath(uploadsDir),
-            normalizePath(downloadsDir)
+            normalizePath(downloadsDir),
+            accessControlAllowOrigin,
+            accessControlAllowMethods,
+            accessControlAllowHeaders
         )
     }
 
