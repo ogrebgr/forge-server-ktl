@@ -66,6 +66,8 @@ class MimeTypeResolverImpl : MimeTypeResolver {
             put("xltx", "application/vnd.openxmlformats-officedocument.spreadsheetml.template")
             put("xml", "application/xml")
             put("zip", "application/zip,application/x-compressed-zip")
+            put("webp", "image/webp")
+            put("avif", "image/avif")
         }
     }
 
