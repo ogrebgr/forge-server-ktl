@@ -122,6 +122,43 @@ fun <T> executeInTrans(
     }
 }
 
+fun executeInTrans(
+    dbc: Connection,
+    f: () -> Unit
+) {
+    try {
+        dbc.autoCommit = false
+
+        f()
+
+        dbc.commit()
+    } catch (e: Exception) {
+        dbc.rollback()
+        throw e
+    } finally {
+        dbc.autoCommit = true
+    }
+}
+
+fun <T> executeInTrans(
+    dbc: Connection,
+    f: () -> T
+): T {
+    try {
+        dbc.autoCommit = false
+
+        val ret: T = f()
+
+        dbc.commit()
+        return ret
+    } catch (e: Exception) {
+        dbc.rollback()
+        throw e
+    } finally {
+        dbc.autoCommit = true
+    }
+}
+
 class DbTransactionRetryFailedException(message: String?) : Exception(message)
 
 
