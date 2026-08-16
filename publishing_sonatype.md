@@ -27,7 +27,24 @@
 - 3.9. git push origin --tags
 - 3.10. in build.gradle comment back plugin gradle-nexus.publish-plugin and nexusPublishing
 
+# Prerequisites
+## 1. gradle.properties
+
+`~/.gradle/gradle.properties` with:
+```
+signing.keyId=DB2E9D2E
+signing.password=
+signing.secretKeyRingFile=/home/ogre/.gnupg/secring.gpg
+
+ossrhUsername=token
+ossrhPassword=password
+```
+
+Token is from: https://central.sonatype.com/usertoken
 
 
+## 2. `.gnupg` dir
+
+from `~/Documents/ogre/backup_sensitive`
 
 
