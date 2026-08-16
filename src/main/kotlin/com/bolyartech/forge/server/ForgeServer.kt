@@ -108,7 +108,7 @@ interface ForgeServer {
                 val logbackConfigFilePath = f.absolutePath
                 try {
                     jc.doConfigure(logbackConfigFilePath)
-                    logger.info("+++ logback initialized OK")
+                    logger.info("+++ logback initialized OK ($logbackConfigFilePath)")
                 } catch (e: JoranException) {
                     e.printStackTrace()
                 }
