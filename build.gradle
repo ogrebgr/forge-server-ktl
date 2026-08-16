@@ -6,7 +6,7 @@ plugins {
 }
 
 ext {
-    forge_server_version = '24.0.0'
+    forge_server_version = '24.0.1'
 }
 
 group 'com.bolyartech.forge.server'
